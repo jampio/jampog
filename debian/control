@@ -1,0 +1,8 @@
+Package: jampog
+Section: main
+Priority: optional
+Build-Depends: cmake, gcc-multilib, g++-multilib
+Standards-Version: 1.0.0
+Homepage: https://github.com/jampio/jampog
+Vcs-Git: https://github.com/jampio/jampog.git
+
