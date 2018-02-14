@@ -1,9 +1,9 @@
-.PHONY: clean install
+.PHONY: build clean install
 
 CORES := $(shell nproc)
 DESTDIR ?= /usr/local/bin
 
-build/jampog:
+build:
 	@mkdir -p build && cd build && cmake .. && cmake --build . -- -j$(CORES)
 
 clean:
