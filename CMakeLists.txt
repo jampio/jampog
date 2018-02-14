@@ -25,7 +25,7 @@ set(InOpenJK TRUE)
 
 
 # Project name
-set(ProjectName "OpenJK" CACHE STRING "Project Name")
+set(ProjectName "jampog" CACHE STRING "Project Name")
 project(${ProjectName})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -35,15 +35,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 # Customizable options
 option(BuildPortableVersion "Build portable version (does not read or write files from your user/home directory" OFF)
 
-option(BuildMPEngine "Whether to create projects for the MP client (openjk.exe)" ON)
-option(BuildMPRdVanilla "Whether to create projects for the MP default renderer (rd-vanilla_x86.dll)" ON)
+option(BuildMPEngine "Whether to create projects for the MP client (openjk.exe)" OFF)
+option(BuildMPRdVanilla "Whether to create projects for the MP default renderer (rd-vanilla_x86.dll)" OFF)
 option(BuildMPDed "Whether to create projects for the MP dedicated server (openjkded.exe)" ON)
-option(BuildMPGame "Whether to create projects for the MP server-side gamecode (jampgamex86.dll)" ON)
-option(BuildMPCGame "Whether to create projects for the MP clientside gamecode (cgamex86.dll)" ON)
-option(BuildMPUI "Whether to create projects for the MP UI code (uix86.dll)" ON)
-option(BuildSPEngine "Whether to create projects for the SP engine (openjk_sp.exe)" ON)
-option(BuildSPGame "Whether to create projects for the SP gamecode (jagamex86.dll)" ON)
-option(BuildSPRdVanilla "Whether to create projects for the SP default renderer (rdsp-vanilla_x86.dll)" ON)
+option(BuildMPGame "Whether to create projects for the MP server-side gamecode (jampgamex86.dll)" OFF)
+option(BuildMPCGame "Whether to create projects for the MP clientside gamecode (cgamex86.dll)" OFF)
+option(BuildMPUI "Whether to create projects for the MP UI code (uix86.dll)" OFF)
+option(BuildSPEngine "Whether to create projects for the SP engine (openjk_sp.exe)" OFF)
+option(BuildSPGame "Whether to create projects for the SP gamecode (jagamex86.dll)" OFF)
+option(BuildSPRdVanilla "Whether to create projects for the SP default renderer (rdsp-vanilla_x86.dll)" OFF)
 
 option(BuildJK2SPEngine "Whether to create projects for the jk2 SP engine (openjo_sp.exe)" OFF)
 option(BuildJK2SPGame "Whether to create projects for the jk2 sp gamecode mod (jk2gamex86.dll)" OFF)
@@ -61,7 +61,7 @@ CMAKE_DEPENDENT_OPTION(BuildSymbolServer "Build WIP Windows Symbol Server (exper
 # use Z_Malloc.
 
 set(UseInternalOpenALDefault OFF)
-set(UseInternalZlibDefault   OFF)
+set(UseInternalZlibDefault   ON)
 set(UseInternalPNGDefault    OFF)
 set(UseInternalJPEGDefault   OFF)
 set(UseInternalSDL2Default   OFF)
@@ -136,6 +136,9 @@ else()
 	endif()
 endif()
 
+set(x86 ON)
+set(Architecture "i386")
+
 message(STATUS "Architecture is ${Architecture}")
 
 if(WIN32 AND CMAKE_VERSION VERSION_LESS "3.4")
@@ -155,7 +158,7 @@ set(SPGame "jagame${Architecture}")
 set(SPRDVanillaRenderer "rdsp-vanilla_${Architecture}")
 set(MPEngine "openjk.${Architecture}")
 set(MPVanillaRenderer "rd-vanilla_${Architecture}")
-set(MPDed "openjkded.${Architecture}")
+set(MPDed "jampog")
 set(MPGame "jampgame${Architecture}")
 set(MPCGame "cgame${Architecture}")
 set(MPUI "ui${Architecture}")
@@ -197,96 +200,99 @@ endif()
 
 
 # Compiler settings
-if(MSVC)
+#if(MSVC)
+#
+#	set(SharedDefines ${SharedDefines} "NOMINMAX")
+#	set(SharedDefines ${SharedDefines} "_CRT_SECURE_NO_WARNINGS")
+#	set(SharedDefines ${SharedDefines} "_SCL_SECURE_NO_WARNINGS")
+#	set(SharedDefines ${SharedDefines} "_CRT_NONSTDC_NO_DEPRECATE")
+#
+#	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
+#	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
+#
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+#
+#	# We don't try to control symbol visibility under MSVC.
+#	set(OPENJK_VISIBILITY_FLAGS "")
+#
+#elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"))
+#	# I hope this doesn't come back to bite me in the butt later on.
+#	# Realistically though, can the C and CXX compilers be different?
+#
+#	# Visibility can't be set project-wide -- it needs to be specified on a
+#	# per-target basis.  This is primarily due to the bundled copy of ZLib.
+#	# ZLib explicitly declares symbols hidden, rather than defaulting to hidden.
+#	#
+#	# Note that -fvisibility=hidden is stronger than -fvisibility-inlines-hidden.
+#	set(OPENJK_VISIBILITY_FLAGS "-fvisibility=hidden")
+#
+#	# removes the -rdynamic flag at linking (which causes crashes for some reason)
+#	set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
+#	set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+#
+#	# additional flags for debug configuration
+#	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
+#	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
+#
+#	if (X86)
+#		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+#	endif()
+#
+#	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
+#	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+#
+#	# enable somewhat modern C++
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#	
+#	if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+#		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+#		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
+#		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsigned-char")
+#		if (X86)
+#			# "x86 vm will crash without -mstackrealign since MMX
+#			# instructions will be used no matter what and they
+#			# corrupt the frame pointer in VM calls"
+#			# -ioquake3 Makefile
+#			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign")
+#			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
+#		endif()
+#
+#		if(WIN32)
+#			# Link libgcc and libstdc++ statically
+#			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc")
+#			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc")
+#			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
+#		endif()
+#	elseif("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+#		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+#		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
+#	endif()
+#
+#	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
+#		if (X86)
+#			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
+#			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
+#		endif()
+#	elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
+#		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-writable-strings")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
+#	endif()
+#else()
+#	message(ERROR "Unsupported compiler")
+#endif()
 
-	set(SharedDefines ${SharedDefines} "NOMINMAX")
-	set(SharedDefines ${SharedDefines} "_CRT_SECURE_NO_WARNINGS")
-	set(SharedDefines ${SharedDefines} "_SCL_SECURE_NO_WARNINGS")
-	set(SharedDefines ${SharedDefines} "_CRT_NONSTDC_NO_DEPRECATE")
-
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-
-	# We don't try to control symbol visibility under MSVC.
-	set(OPENJK_VISIBILITY_FLAGS "")
-
-elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"))
-	# I hope this doesn't come back to bite me in the butt later on.
-	# Realistically though, can the C and CXX compilers be different?
-
-	# Visibility can't be set project-wide -- it needs to be specified on a
-	# per-target basis.  This is primarily due to the bundled copy of ZLib.
-	# ZLib explicitly declares symbols hidden, rather than defaulting to hidden.
-	#
-	# Note that -fvisibility=hidden is stronger than -fvisibility-inlines-hidden.
-	set(OPENJK_VISIBILITY_FLAGS "-fvisibility=hidden")
-
-	# removes the -rdynamic flag at linking (which causes crashes for some reason)
-	set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-	set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
-
-	# additional flags for debug configuration
-	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
-
-	if (X86)
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
-	endif()
-
-	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-
-	# enable somewhat modern C++
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	
-	if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsigned-char")
-		if (X86)
-			# "x86 vm will crash without -mstackrealign since MMX
-			# instructions will be used no matter what and they
-			# corrupt the frame pointer in VM calls"
-			# -ioquake3 Makefile
-			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign")
-			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
-		endif()
-
-		if(WIN32)
-			# Link libgcc and libstdc++ statically
-			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
-		endif()
-	elseif("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
-	endif()
-
-	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
-		if (X86)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
-		endif()
-	elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
-		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-writable-strings")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
-	endif()
-else()
-	message(ERROR "Unsupported compiler")
-endif()
+set(CMAKE_C_FLAGS "-Wno-write-strings -m32 -march=i386")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++17")
 
 if (NOT CMAKE_BUILD_TYPE)
 	message(STATUS "No build type selected, default to RELEASE")
@@ -340,23 +346,23 @@ set(SharedCommonSafeFiles
 	)
 
 
-if(UseInternalJPEG)
-  add_subdirectory(lib/jpeg-9a)
-else()
-  find_package(JPEG REQUIRED)
-endif()
-
+#if(UseInternalJPEG)
+#  add_subdirectory(lib/jpeg-9a)
+#else()
+#  find_package(JPEG REQUIRED)
+#endif()
+#
 if(UseInternalZlib)
   add_subdirectory(lib/zlib)
 else()
   find_package(ZLIB REQUIRED)
 endif()
-
-if(UseInternalPNG)
-  add_subdirectory(lib/libpng)
-else()
-  find_package(PNG REQUIRED)
-endif()
+#
+#if(UseInternalPNG)
+#  add_subdirectory(lib/libpng)
+#else()
+#  find_package(PNG REQUIRED)
+#endif()
 
 # Always use bundled minizip (sets MINIZIP_{LIBRARIES,INCLUDE_DIR})
 add_subdirectory(lib/minizip)
