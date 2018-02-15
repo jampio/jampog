@@ -17,10 +17,10 @@
 #============================================================================
 
 # Subdirectories to package JK2 and JKA into
-set(JKAInstallDir "JediAcademy")
+set(JKAInstallDir ${CMAKE_INSTALL_PREFIX})
 set(JK2InstallDir "JediOutcast")
 
-# Install components
+# Install components:
 set(JKAMPCoreComponent "JKAMPCore")
 set(JKAMPServerComponent "JKAMPServer")
 set(JKAMPClientComponent "JKAMPClient")

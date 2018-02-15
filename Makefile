@@ -2,13 +2,15 @@
 
 CORES := $(shell nproc)
 DESTDIR ?= /usr/local/bin
-INSTALL_PROGRAM ?= /usr/bin/install
 
 build:
-	@mkdir -p build && cd build && cmake .. && cmake --build . -- -j$(CORES)
+	@mkdir -p build && \
+		cd build && \
+		cmake -DCMAKE_INSTALL_PREFIX=$(DESTDIR) .. && \
+		cmake --build . -- -j$(CORES)
 
 clean:
 	@rm -rf build
 
 install:
-	@$(INSTALL_PROGRAM) build/jampog $(DESTDIR)
+	@cmake --build build --target install
