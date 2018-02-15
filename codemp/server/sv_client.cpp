@@ -1241,6 +1241,10 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 	GVM_ClientUserinfoChanged( cl - svs.clients );
 }
 
+static void SV_GameCommand_f(client_t *cl) {
+	SV_SendServerCommand(cl, "print \"GC command disabled.\n\"");
+}
+
 typedef struct ucmd_s {
 	const char	*name;
 	void	(*func)( client_t *cl );
@@ -1255,6 +1259,7 @@ static ucmd_t ucmds[] = {
 	{"nextdl", SV_NextDownload_f},
 	{"stopdl", SV_StopDownload_f},
 	{"donedl", SV_DoneDownload_f},
+	{"gc", SV_GameCommand_f},
 
 	{NULL, NULL}
 };
