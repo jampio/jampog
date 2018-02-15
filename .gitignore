@@ -177,3 +177,4 @@ pip-log.txt
 # IDEA
 .idea/
 cmake-build-debug/
+cmake-build-release/
