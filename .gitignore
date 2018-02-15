@@ -173,3 +173,7 @@ pip-log.txt
 #############
 *.o
 *.so
+
+# IDEA
+.idea/
+cmake-build-debug/
