@@ -34,8 +34,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #if defined(_DEBUG)
 	#define	JK_VERSION		"(debug)jampog: v" VERSION_STRING_DOTTED
-	#define JK_VERSION_OLD	"(debug)JAmp: v" VERSION_STRING_DOTTED
+	#define JK_VERSION_OLD	"(debug)jampog: v" VERSION_STRING_DOTTED
 #else
 	#define	JK_VERSION		"jampog: v" VERSION_STRING_DOTTED
-	#define JK_VERSION_OLD	"JAmp: v" VERSION_STRING_DOTTED
+	#define JK_VERSION_OLD	"jampog: v" VERSION_STRING_DOTTED
 #endif
