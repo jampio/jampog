@@ -1,16 +1,20 @@
-.PHONY: build clean install
-
-CORES := $(shell nproc)
+CORES ?= $(shell nproc)
 DESTDIR ?= /usr/local/bin
 
-build:
-	@mkdir -p build && \
-		cd build && \
-		cmake -DCMAKE_INSTALL_PREFIX=$(DESTDIR) .. && \
-		cmake --build . -- -j$(CORES)
+.PHONY: all
+all: | build/Makefile
+	@cmake --build build -- -j$(CORES) --no-print-directory
 
+.PHONY: clean
 clean:
 	@rm -rf build
 
+.PHONY: install
 install:
-	@cmake --build build --target install
+	@cmake --build build --target install -- --no-print-directory
+
+build/:
+	@mkdir -p $@
+
+build/Makefile: | build/
+	@cd build && cmake -DCMAKE_INSTALL_PREFIX=$(DESTDIR) ..
