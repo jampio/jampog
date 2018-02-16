@@ -15,3 +15,9 @@ cd jampog
 make
 # will install to /usr/local/bin/jampog
 sudo make install
+```
+
+### included fixes
+* gc (out of bounds index) (Cmd_GameCommand_f)
+* invalid forcepowers userinfo string crash (BG_LegalizedForcePowers)
+
