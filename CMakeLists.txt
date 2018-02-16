@@ -64,7 +64,7 @@ set(UseInternalOpenALDefault ON)
 set(UseInternalZlibDefault   ON)
 set(UseInternalPNGDefault    ON)
 set(UseInternalJPEGDefault   ON)
-set(UseInternalSDL2Default   OFF)
+set(UseInternalSDL2Default   ON)
 
 if(WIN32)
   set(UseInternalOpenALDefault ON)
