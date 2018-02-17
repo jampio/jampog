@@ -29,4 +29,14 @@ void detour(void * const before, const void * const after) {
 		(uint32_t)((unsigned char*)after - ((unsigned char*)before + 5));
 }
 
+void patch_byte(unsigned char *byte, unsigned char value) {
+	protect(byte, 1);
+	*byte = value;
+}
+
+void patch_word(unsigned int *word, unsigned int value) {
+	protect(word, 4);
+	*word = value;
+}
+
 }

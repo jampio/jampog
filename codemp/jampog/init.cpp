@@ -2,7 +2,7 @@
 #include <link.h>
 #include "init.h"
 #include "forcepowers.h"
-#include "detour.h"
+#include "followcycle.h"
 
 static uintptr_t dladdress(void * const handle) {
 	void *map;
@@ -19,4 +19,6 @@ void jampog::init(const vm_t * const vm) {
 	const uintptr_t base = dladdress(vm->dllHandle);
 	Com_Printf("patching BG_LegalizedForcePowers\n");
 	patch_forcepowers(base);
+	Com_Printf("patching SetTeam\n");
+	patch_setteam(base);
 }

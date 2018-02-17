@@ -647,6 +647,8 @@ if(BuildMPDed)
 	set(MPJampogFiles
 		"${MPDir}/jampog/detour.cpp"
 		"${MPDir}/jampog/detour.h"
+		"${MPDir}/jampog/followcycle.cpp"
+		"${MPDir}/jampog/followcycle.h"
 		"${MPDir}/jampog/forcepowers.cpp"
 		"${MPDir}/jampog/forcepowers.h"
 		"${MPDir}/jampog/init.cpp"
