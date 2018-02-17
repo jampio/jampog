@@ -22,3 +22,4 @@ sudo make install
 * invalid forcepowers userinfo string crash (BG_LegalizedForcePowers)
 * team follow1/follow2/score/scoreboard patched (SetTeam) (should prevent follow1 cycle crash when 0 clients)
 * q3msgboom (SV_SendServerCommand) (via openjk)
+* client commands filtered from control characters (sv_filterCommands) (via openjk)
