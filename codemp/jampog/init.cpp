@@ -4,6 +4,7 @@
 #include "forcepowers.h"
 #include "followcycle.h"
 #include "clean_name.h"
+#include "duel.h"
 
 static uintptr_t dladdress(void * const handle) {
 	void *map;
@@ -24,4 +25,6 @@ void jampog::init(const vm_t * const vm) {
 	patch_setteam(base);
 	Com_Printf("patching ClientCleanName\n");
 	patch_clean_name(base);
+	Com_Printf("patching Cmd_EngageDuel_f\n");
+	patch_engage_duel(base);
 }

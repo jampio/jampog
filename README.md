@@ -26,3 +26,4 @@ sudo make install
 
 ### new features
 * black names are allowed
+* multiduel

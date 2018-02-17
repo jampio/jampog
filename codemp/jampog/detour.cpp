@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 static inline uintptr_t pagealign(const uintptr_t p) {
 	const uintptr_t pageSize = uintptr_t(sysconf(_SC_PAGESIZE));
@@ -37,6 +38,11 @@ void patch_byte(unsigned char *byte, unsigned char value) {
 void patch_word(unsigned int *word, unsigned int value) {
 	protect(word, 4);
 	*word = value;
+}
+
+void patch_str(void *dest, const char *str) {
+	protect(dest, strlen(str));
+	memcpy(dest, str, strlen(str));
 }
 
 }
