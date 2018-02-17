@@ -645,12 +645,15 @@ if(BuildMPDed)
 	set(MPDedFiles ${MPDedFiles} ${MPDedNullFiles})
 
 	set(MPJampogFiles
+		"${MPDir}/jampog/clean_name.cpp"
+		"${MPDir}/jampog/clean_name.h"
 		"${MPDir}/jampog/detour.cpp"
 		"${MPDir}/jampog/detour.h"
 		"${MPDir}/jampog/followcycle.cpp"
 		"${MPDir}/jampog/followcycle.h"
 		"${MPDir}/jampog/forcepowers.cpp"
 		"${MPDir}/jampog/forcepowers.h"
+		"${MPDir}/jampog/game_structs.h"
 		"${MPDir}/jampog/init.cpp"
 		"${MPDir}/jampog/init.h"
 		)

@@ -3,6 +3,7 @@
 #include "init.h"
 #include "forcepowers.h"
 #include "followcycle.h"
+#include "clean_name.h"
 
 static uintptr_t dladdress(void * const handle) {
 	void *map;
@@ -21,4 +22,6 @@ void jampog::init(const vm_t * const vm) {
 	patch_forcepowers(base);
 	Com_Printf("patching SetTeam\n");
 	patch_setteam(base);
+	Com_Printf("patching ClientCleanName\n");
+	patch_clean_name(base);
 }

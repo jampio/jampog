@@ -23,3 +23,6 @@ sudo make install
 * team follow1/follow2/score/scoreboard patched (SetTeam) (should prevent follow1 cycle crash when 0 clients)
 * q3msgboom (SV_SendServerCommand) (via openjk)
 * client commands filtered from control characters (sv_filterCommands) (via openjk)
+
+### new features
+* black names are allowed
