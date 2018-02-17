@@ -20,4 +20,5 @@ sudo make install
 ### included fixes
 * gc (out of bounds index) (Cmd_GameCommand_f)
 * invalid forcepowers userinfo string crash (BG_LegalizedForcePowers)
+* team follow1/follow2/score/scoreboard patched (SetTeam) (should prevent follow1 cycle crash when 0 clients)
 
