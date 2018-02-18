@@ -26,7 +26,7 @@ sudo make install
 
 ### new features
 * black names are allowed
-* multiduel
+* improved dueling (multiduel, removed distance limit, improved duel messages)
 
 ### new server cvars
 * g_duelHealth (default: 100)

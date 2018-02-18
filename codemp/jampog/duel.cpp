@@ -15,6 +15,7 @@ constexpr auto CLIENT_THINK_REAL_RETURN_LOCATION = 0x11D0B5;
 
 static void *g_entities = nullptr;
 static vmCvar_t *g_gametype = nullptr;
+static vmCvar_t *g_spawnInvulnerability = nullptr;
 static void (*trap_SendServerCommand)(int, const char *) = nullptr;
 static const char *(*G_GetStringEdString)(char *refSection, char *refName) = nullptr;
 static uintptr_t g_base = 0;
@@ -39,8 +40,93 @@ static void holster_saber(void *ent) {
 
 }
 
+static void turn_on_saber(void *ent) {
+	client_ps(ent_client(ent))->saberHolstered = 0;
+	if (client_saber(ent_client(ent))[0].soundOn) {
+		G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[0].soundOn);
+	}
+	if (client_saber(ent_client(ent))[1].soundOn) {
+		G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[1].soundOn);
+	}
+
+}
+
 static void DuelActive(void *ent) {
-	Com_Printf("DuelActive\n");
+	if (!client_ps(ent_client(ent))->duelInProgress) {
+		return;
+	}
+
+	void *duelAgainst = gentity_for_num(g_base, client_ps(ent_client(ent))->duelIndex);
+
+	if (client_ps(ent_client(ent))->duelTime < sv.time) {
+		if (client_ps(ent_client(ent))->weapon == WP_SABER
+		    && client_ps(ent_client(ent))->saberHolstered
+		    && client_ps(ent_client(ent))->duelTime) {
+			turn_on_saber(ent);
+			G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
+			client_ps(ent_client(ent))->duelTime = 0;
+		}
+		if (ent_client(duelAgainst)
+		    && ent_inuse(duelAgainst)
+		    && client_ps(ent_client(duelAgainst))->weapon == WP_SABER
+		    && client_ps(ent_client(duelAgainst))->saberHolstered
+		    && client_ps(ent_client(duelAgainst))->duelTime) {
+			turn_on_saber(duelAgainst);
+			G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 2);
+			client_ps(ent_client(duelAgainst))->duelTime = 0;
+		}
+	} else {
+		client_ps(ent_client(ent))->speed = 0;
+		client_ps(ent_client(ent))->basespeed = 0;
+		client_pers(ent_client(ent))->cmd.forwardmove = 0;
+		client_pers(ent_client(ent))->cmd.rightmove = 0;
+		client_pers(ent_client(ent))->cmd.upmove = 0;
+	}
+
+	if (!ent_client(duelAgainst)
+	    || !ent_inuse(duelAgainst)
+	    || client_ps(ent_client(duelAgainst))->duelIndex != ent_s(ent)->number) {
+
+		client_ps(ent_client(ent))->duelInProgress = qfalse;
+		G_AddEvent(ent, EV_PRIVATE_DUEL, 0);
+
+	} else if (ent_health(duelAgainst) < 1
+	           || client_ps(ent_client(duelAgainst))->stats[STAT_HEALTH] < 1) {
+
+		client_ps(ent_client(ent))->duelInProgress = qfalse;
+		client_ps(ent_client(duelAgainst))->duelInProgress = qfalse;
+
+		G_AddEvent(ent, EV_PRIVATE_DUEL, 0);
+		G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 0);
+
+		if (ent_health(ent) > 0
+		    && client_ps(ent_client(ent))->stats[STAT_HEALTH] > 0) {
+
+			trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> (^1%d^7/^2%d^7) remaining\n\"",
+				client_pers(ent_client(ent))->netname,
+				G_GetStringEdString("MP_SVGAME", "PLDUELWINNER"),
+				client_pers(ent_client(duelAgainst))->netname,
+				client_ps(ent_client(ent))->stats[STAT_HEALTH],
+				client_ps(ent_client(ent))->stats[STAT_ARMOR]
+			));
+
+			const int new_health = client_ps(ent_client(ent))->stats[STAT_MAX_HEALTH];
+			client_ps(ent_client(ent))->stats[STAT_HEALTH] = new_health;
+			ent_set_health(ent, new_health);
+			client_ps(ent_client(ent))->stats[STAT_ARMOR] = 25;
+
+			if (g_spawnInvulnerability->integer) {
+				client_ps(ent_client(ent))->eFlags |= EF_INVULNERABLE;
+				client_set_invulnerableTimer(ent_client(ent), sv.time + g_spawnInvulnerability->integer);
+			}
+		} else {// tie
+			trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7\n\"",
+				client_pers(ent_client(ent))->netname,
+				G_GetStringEdString("MP_SVGAME", "PLDUELTIE"),
+				client_pers(ent_client(duelAgainst))->netname
+			));
+		}
+	}
 }
 
 static void EngageDuel(void *ent) {
@@ -58,11 +144,6 @@ static void EngageDuel(void *ent) {
 	    || client_ps(ent_client(ent))->weapon != WP_SABER
 	    || client_ps(ent_client(ent))->saberInFlight
 	    || client_ps(ent_client(ent))->duelInProgress) {
-		return;
-	}
-
-	if (client_ps(ent_client(ent))->fd.privateDuelTime > sv.time) {
-		trap_SendServerCommand(client_num(g_base, ent), va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "CANTDUEL_JUSTDID")) );
 		return;
 	}
 
@@ -123,8 +204,6 @@ static void EngageDuel(void *ent) {
 			trap_SendServerCommand(client_num(g_base, ent), va("cp \"%s %s^7\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), client_pers(ent_client(challenged))->netname));
 		}
 
-		client_ps(ent_client(challenged))->fd.privateDuelTime = 0; //reset the timer in case this player just got out of a duel. He should still be able to accept the challenge.
-
 		client_ps(ent_client(ent))->forceHandExtend = HANDEXTEND_DUELCHALLENGE;
 		client_ps(ent_client(ent))->forceHandExtendTime = sv.time + 1000;
 
@@ -132,7 +211,6 @@ static void EngageDuel(void *ent) {
 		client_ps(ent_client(ent))->duelTime = sv.time + 5000;
 	}
 }
-
 
 namespace jampog {
 	static void patch_client_think(uintptr_t base) {
@@ -171,7 +249,8 @@ namespace jampog {
 		G_Sound = (decltype(G_Sound))(base + 0x0016E824);
 		g_duelHealth = Cvar_Get("g_duelHealth", "100", CVAR_ARCHIVE);
 		g_duelArmor = Cvar_Get("g_duelArmor", "100", CVAR_ARCHIVE);
-
-		//patch_client_think(base);
+		g_spawnInvulnerability = (vmCvar_t*)(base + 0x0084C200);
+		Com_Printf("patching ClientThink_real\n");
+		patch_client_think(base);
 	}
 }

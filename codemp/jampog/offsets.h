@@ -24,6 +24,10 @@ static inline clientPersistant_t *client_pers(void *client) {
 	return (clientPersistant_t*)((uintptr_t)client + 1552);
 }
 
+static inline void client_set_invulnerableTimer(void *client, int value) {
+	*(int*)((uintptr_t)client + 6328) = value;
+}
+
 static inline saberInfo_t *client_saber(void *client) {
 	return (saberInfo_t*)((uintptr_t)client + 1992);
 }
