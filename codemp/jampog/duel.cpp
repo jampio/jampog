@@ -9,6 +9,9 @@ constexpr auto TRAP_SENDSERVERCOMMAND_OFFSET = 0x0015E454;
 constexpr auto GET_STRING_ED_OFFSET = 0x0008B184;
 constexpr auto PATCH = "\x33\xC0\xC3"; // xor eax, eax, ret
 constexpr auto G_OTHERPLAYERSDUELING_OFFSET = 0x0012F304;
+constexpr auto CLIENT_THINK_REAL_OFFSET = 0x00011C4C4;
+constexpr auto CLIENT_THINK_REAL_START_LOCATION = 0x0011CE05;
+constexpr auto CLIENT_THINK_REAL_RETURN_LOCATION = 0x11D0B5;
 
 static void *g_entities = nullptr;
 static vmCvar_t *g_gametype = nullptr;
@@ -34,6 +37,10 @@ static void holster_saber(void *ent) {
 		client_ps(ent_client(ent))->saberHolstered = 2;
 	}
 
+}
+
+static void DuelActive(void *ent) {
+	Com_Printf("DuelActive\n");
 }
 
 static void EngageDuel(void *ent) {
@@ -126,7 +133,31 @@ static void EngageDuel(void *ent) {
 	}
 }
 
+
 namespace jampog {
+	static void patch_client_think(uintptr_t base) {
+		uintptr_t CUR = base + CLIENT_THINK_REAL_START_LOCATION;
+		// pushad (backup registers incase they are clobbered)
+		patch_byte((unsigned char*)CUR, 0x60);
+		CUR += 1;
+		// push esi (gentity_t *ent)
+		patch_byte((unsigned char*)CUR, 0x56);
+		CUR += 1;
+		// call DuelActive
+		patch_byte((unsigned char*)CUR, 0xE8);
+		patch_word((unsigned int*)(CUR+1), (unsigned int)((uintptr_t)DuelActive - (CUR + 5)));
+		CUR += 5;
+		// pop esi
+		patch_byte((unsigned char*)CUR, 0x5E);
+		CUR += 1;
+		// popad (restore registers)
+		patch_byte((unsigned char*)CUR, 0x61);
+		CUR += 1;
+		// jmp RET_LOC
+		uintptr_t RET_LOC = (base + CLIENT_THINK_REAL_RETURN_LOCATION) - (CUR + 5);
+		patch_byte((unsigned char*)CUR, 0xE9);
+		patch_word((unsigned int*)(CUR+1), RET_LOC);
+	}
 	void patch_engage_duel(uintptr_t base) {
 		g_base = base;
 		detour((void*)(base + CMD_ENGAGEDUEL_F_OFFSET), (void*)EngageDuel);
@@ -140,5 +171,7 @@ namespace jampog {
 		G_Sound = (decltype(G_Sound))(base + 0x0016E824);
 		g_duelHealth = Cvar_Get("g_duelHealth", "100", CVAR_ARCHIVE);
 		g_duelArmor = Cvar_Get("g_duelArmor", "100", CVAR_ARCHIVE);
+
+		//patch_client_think(base);
 	}
 }
