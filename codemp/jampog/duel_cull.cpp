@@ -44,6 +44,10 @@ static bool IsActor(sharedEntity_t *ent) {
 static bool IsDueling(sharedEntity_t *A, sharedEntity_t *B) {
 	auto a = flatten(A);
 	auto b = flatten(B);
+	// checking for owned event entities
+	if (a == b || a->s.number == b->s.number) {
+		return true;
+	}
 	return GetPS(a)
 	       && GetPS(a)->duelInProgress
 	       && GetPS(a)->duelIndex == b->s.number;
