@@ -27,6 +27,7 @@ sudo make install
 ### new features
 * black names are allowed
 * improved dueling (multiduel, removed distance limit, improved duel messages)
+* duel interference like in JA+
 
 ### new server cvars
 * g_duelHealth (default: 100)
