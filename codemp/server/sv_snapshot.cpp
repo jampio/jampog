@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "server.h"
 #include "qcommon/cm_public.h"
+#include "jampog/duel_cull.h"
 
 /*
 =============================================================================
@@ -424,6 +425,10 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			if ( ent->r.singleClient == frame->ps.clientNum ) {
 				continue;
 			}
+		}
+
+		if (DuelCull(ent, SV_GentityNum(frame->ps.clientNum))) {
+			continue;
 		}
 
 		svEnt = SV_SvEntityForGentity( ent );
@@ -889,4 +894,3 @@ void SV_SendClientMessages( void ) {
 		SV_SendClientSnapshot( c );
 	}
 }
-

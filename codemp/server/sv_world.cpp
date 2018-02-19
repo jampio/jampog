@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "server.h"
 #include "ghoul2/ghoul2_shared.h"
 #include "qcommon/cm_public.h"
+#include "jampog/duel_cull.h"
 
 /*
 ================
@@ -535,51 +536,6 @@ static float VectorDistance(vec3_t p1, vec3_t p2)
 }
 #endif
 
-static sharedEntity_t *flatten(sharedEntity_t *ent) {
-	return ent->r.ownerNum == ENTITYNUM_NONE ? ent : SV_GentityNum(ent->r.ownerNum);
-}
-
-static playerState_t *GetPS(sharedEntity_t *ent) {
-	return SV_GameClientNum(ent->s.number);
-}
-
-static bool IsPlayer(sharedEntity_t *ent) {
-	return ent->s.eType == ET_PLAYER;
-}
-
-static bool IsNPC(sharedEntity_t *ent) {
-	return ent->s.eType == ET_NPC;
-}
-
-static bool IsDueling(sharedEntity_t *ent) {
-	return IsPlayer(flatten(ent)) && GetPS(flatten(ent))->duelInProgress;
-}
-
-static bool IsActor(sharedEntity_t *ent) {
-	return IsPlayer(flatten(ent)) || IsNPC(flatten(ent));
-}
-
-static bool IsDueling(sharedEntity_t *A, sharedEntity_t *B) {
-	auto a = flatten(A);
-	auto b = flatten(B);
-	return GetPS(a)
-	       && GetPS(a)->duelInProgress
-	       && GetPS(a)->duelIndex == b->s.number;
-}
-
-static bool ShouldNotCollide(sharedEntity_t *ent, sharedEntity_t *touch) {
-	constexpr auto NO_COLLIDE = true;
-	constexpr auto COLLIDE = !NO_COLLIDE;
-	if (IsActor(ent) && IsActor(touch)) {
-		if (IsDueling(ent, touch)
-		    || (!IsDueling(ent) && !IsDueling(touch))) {
-			return COLLIDE;
-		}
-		return NO_COLLIDE;
-	}
-	return COLLIDE;
-}
-
 static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 	static int	touchlist[MAX_GENTITIES];
 	int			i, num;
@@ -656,7 +612,7 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 			continue;
 		}
 
-		if (ShouldNotCollide(SV_GentityNum(clip->passEntityNum), touch)) {
+		if (DuelCull(SV_GentityNum(clip->passEntityNum), touch)) {
 			continue;
 		}
 

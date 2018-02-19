@@ -649,6 +649,8 @@ if(BuildMPDed)
 		"${MPDir}/jampog/clean_name.h"
 		"${MPDir}/jampog/detour.cpp"
 		"${MPDir}/jampog/detour.h"
+		"${MPDir}/jampog/duel_cull.cpp"
+		"${MPDir}/jampog/duel_cull.h"
 		"${MPDir}/jampog/duel.cpp"
 		"${MPDir}/jampog/duel.h"
 		"${MPDir}/jampog/followcycle.cpp"
