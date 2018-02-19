@@ -143,7 +143,8 @@ static void EngageDuel(void *ent) {
 	if (client_ps(ent_client(ent))->duelTime >= sv.time
 	    || client_ps(ent_client(ent))->weapon != WP_SABER
 	    || client_ps(ent_client(ent))->saberInFlight
-	    || client_ps(ent_client(ent))->duelInProgress) {
+	    || client_ps(ent_client(ent))->duelInProgress
+	    || client_ps(ent_client(ent))->weaponTime >= 1) {
 		return;
 	}
 
