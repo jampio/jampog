@@ -1,7 +1,24 @@
 #include "duel_cull.h"
 
+static bool valid_number(int number) {
+	return number >= 0
+	       && number < ENTITYNUM_NONE;
+}
+
+// Attempts to flatten entities to their owners
+// Event entities can use clientNum, otherEntityNum, or otherEnttiyNum2
 static sharedEntity_t *flatten(sharedEntity_t *ent) {
-	return ent->r.ownerNum == ENTITYNUM_NONE ? ent : SV_GentityNum(ent->r.ownerNum);
+	if (valid_number(ent->s.clientNum)) {
+		return SV_GentityNum(ent->s.clientNum);
+	} else if (valid_number(ent->s.otherEntityNum)) {
+		return SV_GentityNum(ent->s.otherEntityNum);
+	} else if (valid_number(ent->s.otherEntityNum2)) {
+		return SV_GentityNum(ent->s.otherEntityNum2);
+	} else if (valid_number(ent->r.ownerNum)) {
+		return SV_GentityNum(ent->r.ownerNum);
+	} else {
+		return ent;
+	}
 }
 
 static playerState_t *GetPS(sharedEntity_t *ent) {
