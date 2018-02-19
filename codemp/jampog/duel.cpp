@@ -67,7 +67,7 @@ static void DuelActive(void *ent) {
 			// G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
 			client_ps(ent_client(ent))->duelTime = 0;
 			// trap_SendServerCommand(client_num(g_base, ent), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
-			G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
+			// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
 		}
 		if (ent_client(duelAgainst)
 		    && ent_inuse(duelAgainst)
@@ -78,7 +78,7 @@ static void DuelActive(void *ent) {
 			// G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 2);
 			client_ps(ent_client(duelAgainst))->duelTime = 0;
 			// trap_SendServerCommand(client_num(g_base, duelAgainst), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
-			G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
+			// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
 		}
 	} else {
 		client_ps(ent_client(ent))->speed = 0;
