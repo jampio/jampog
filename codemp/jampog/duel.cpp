@@ -23,6 +23,7 @@ static qboolean (*OnSameTeam)(void *a, void *b) = nullptr;
 static void (*G_AddEvent)(void *ent, int event, int eventParm) = nullptr;
 static void (*G_Sound)(void *ent, int channel, int soundIndex) = nullptr;
 static int (*G_SoundIndex)(const char *s) = nullptr;
+static void (*G_SoundOnEnt)(void *ent, int channel, const char *soundPath) = nullptr;
 static cvar_t *g_duelHealth = nullptr;
 static cvar_t *g_duelArmor = nullptr;
 
@@ -66,6 +67,7 @@ static void DuelActive(void *ent) {
 			turn_on_saber(ent);
 			// G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
 			client_ps(ent_client(ent))->duelTime = 0;
+			// TODO: add begin sound
 			// trap_SendServerCommand(client_num(g_base, ent), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
 			// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
 		}
@@ -124,6 +126,9 @@ static void DuelActive(void *ent) {
 				client_ps(ent_client(ent))->eFlags |= EF_INVULNERABLE;
 				client_set_invulnerableTimer(ent_client(ent), sv.time + g_spawnInvulnerability->integer);
 			}
+			// TODO: add some victory sound
+			// Q_irand( EV_VICTORY1, EV_VICTORY3 );
+			// va("*victory%d.wav", Q_irand(1,3));
 		} else {// tie
 			trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7\n\"",
 				client_pers(ent_client(ent))->netname,
@@ -257,6 +262,7 @@ namespace jampog {
 		g_duelArmor = Cvar_Get("g_duelArmor", "100", CVAR_ARCHIVE);
 		g_spawnInvulnerability = (vmCvar_t*)(base + 0x0084C200);
 		G_SoundIndex = (decltype(G_SoundIndex))(base + 0x00170664);
+		G_SoundOnEnt = (decltype(G_SoundOnEnt))(base + 0x0016E974);
 		Com_Printf("patching ClientThink_real\n");
 		patch_client_think(base);
 	}
