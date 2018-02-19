@@ -56,6 +56,9 @@ static bool IsDueling(sharedEntity_t *A, sharedEntity_t *B) {
 bool DuelCull(sharedEntity_t *ent, sharedEntity_t *touch) {
 	constexpr auto CULL = true;
 	constexpr auto NO_CULL = !CULL;
+	if (Cvar_VariableIntegerValue("g_gametype") != 0) {
+		return false;
+	}
 	if (IsActor(ent) && IsActor(touch)) {
 		if (IsDueling(ent, touch)
 		    || (!IsDueling(ent) && !IsDueling(touch))) {
