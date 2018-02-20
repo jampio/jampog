@@ -1476,7 +1476,7 @@ void Com_Frame( void ) {
 		int           timeAfter = 0;
 
 		// write config file if anything changed
-		Com_WriteConfiguration();
+		// Com_WriteConfiguration();
 
 		//
 		// main event loop
