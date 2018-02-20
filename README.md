@@ -28,8 +28,8 @@ sudo make install
 * black names are allowed
 * improved dueling (multiduel, removed distance limit, improved duel messages)
 * duel interference like in JA+
+* Admin
 
 ### new server cvars
 * g_duelHealth (default: 100)
 * g_duelArmor (default: 100)
-
