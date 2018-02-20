@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "server.h"
 #include "qcommon/stringed_ingame.h"
+#include "jampog/cmd.h"
 
 #ifdef USE_INTERNAL_ZLIB
 #include "zlib/zlib.h"
@@ -1241,10 +1242,6 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 	GVM_ClientUserinfoChanged( cl - svs.clients );
 }
 
-static void SV_GameCommand_f(client_t *cl) {
-	SV_SendServerCommand(cl, "print \"GC command disabled.\n\"");
-}
-
 typedef struct ucmd_s {
 	const char	*name;
 	void	(*func)( client_t *cl );
@@ -1259,7 +1256,6 @@ static ucmd_t ucmds[] = {
 	{"nextdl", SV_NextDownload_f},
 	{"stopdl", SV_StopDownload_f},
 	{"donedl", SV_DoneDownload_f},
-	{"gc", SV_GameCommand_f},
 
 	{NULL, NULL}
 };
@@ -1297,7 +1293,9 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 					Cmd_Args_Sanitize( MAX_CVAR_VALUE_STRING, ";", " " );
 				}
 			}
-			GVM_ClientCommand( cl - svs.clients );
+			if (!jampog::command(cl)) {
+				GVM_ClientCommand( cl - svs.clients );
+			}
 		}
 	}
 	else if (!bProcessed)
@@ -1610,4 +1608,3 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 //		Com_Printf( "WARNING: Junk at end of packet for client %i\n", cl - svs.clients );
 //	}
 }
-

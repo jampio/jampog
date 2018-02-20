@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "game/g_public.h"
 #include "game/bg_public.h"
 #include "rd-common/tr_public.h"
+#include "jampog/cmd.h"
 
 //=============================================================================
 
@@ -190,6 +191,8 @@ typedef struct client_s {
 	qboolean		csUpdated[MAX_CONFIGSTRINGS];
 
 	demoInfo_t		demo;
+
+	jampog::Admin 	admin;
 } client_t;
 
 //=============================================================================

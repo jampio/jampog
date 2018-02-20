@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/MiniHeap.h"
 #include "qcommon/stringed_ingame.h"
 #include "sv_gameapi.h"
+#include "jampog/cmd.h"
 
 /*
 ===============
@@ -1024,6 +1025,8 @@ void SV_Init (void) {
 #ifdef DEDICATED
 	SV_InitRef();
 #endif
+
+	jampog::command_init();
 }
 
 

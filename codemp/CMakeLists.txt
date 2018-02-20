@@ -647,6 +647,8 @@ if(BuildMPDed)
 	set(MPJampogFiles
 		"${MPDir}/jampog/clean_name.cpp"
 		"${MPDir}/jampog/clean_name.h"
+		"${MPDir}/jampog/cmd.cpp"
+		"${MPDir}/jampog/cmd.h"
 		"${MPDir}/jampog/detour.cpp"
 		"${MPDir}/jampog/detour.h"
 		"${MPDir}/jampog/duel_cull.cpp"
