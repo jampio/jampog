@@ -1285,6 +1285,7 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 	if (clientOK) {
 		// pass unknown strings to the game
 		if (!u->name && sv.state == SS_GAME && (cl->state == CS_ACTIVE || cl->state == CS_PRIMED)) {
+			/*
 			// strip \r \n and ;
 			if ( sv_filterCommands->integer ) {
 				Cmd_Args_Sanitize( MAX_CVAR_VALUE_STRING, "\n\r", "  " );
@@ -1292,7 +1293,8 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 					// also strip ';' for callvote
 					Cmd_Args_Sanitize( MAX_CVAR_VALUE_STRING, ";", " " );
 				}
-			}
+			}*/
+			Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
 			if (!jampog::command(cl)) {
 				GVM_ClientCommand( cl - svs.clients );
 			}
