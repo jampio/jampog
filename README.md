@@ -1,4 +1,4 @@
-# jampog
+# jamp _*OG*_
 An engine that patches basejka at runtime to add new features or bug fixes as needed.
 
 Only supports linux i386.
