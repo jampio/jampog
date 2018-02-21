@@ -41,4 +41,4 @@ build-deps:
 
 .PHONY: assets
 assets:
-	scripts/steam.sh
+	USER=$(USER) scripts/steam.sh
