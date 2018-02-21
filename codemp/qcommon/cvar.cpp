@@ -98,7 +98,7 @@ static qboolean Cvar_ValidateString( const char *s ) {
 Cvar_FindVar
 ============
 */
-static cvar_t *Cvar_FindVar( const char *var_name ) {
+cvar_t *Cvar_FindVar( const char *var_name ) {
 	cvar_t	*var;
 	long hash;
 
@@ -503,11 +503,11 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, uint32_t flags, c
 	return var;
 }
 
-static void Cvar_QSortByName( cvar_t **a, int n ) 
+static void Cvar_QSortByName( cvar_t **a, int n )
 {
 	cvar_t *temp;
 	cvar_t *m;
-	int	i, j; 
+	int	i, j;
 
 	i = 0;
 	j = n;
@@ -519,10 +519,10 @@ static void Cvar_QSortByName( cvar_t **a, int n )
 		while ( strcmp( a[j]->name, m->name ) < 0 ) j--;
 
 		if ( i <= j ) {
-			temp = a[i]; 
-			a[i] = a[j]; 
+			temp = a[i];
+			a[i] = a[j];
 			a[j] = temp;
-			i++; 
+			i++;
 			j--;
 		}
 	} while ( i <= j );
@@ -532,7 +532,7 @@ static void Cvar_QSortByName( cvar_t **a, int n )
 }
 
 
-static void Cvar_Sort( void ) 
+static void Cvar_Sort( void )
 {
 	cvar_t *list[ MAX_CVARS ], *var;
 	int count;
@@ -551,7 +551,7 @@ static void Cvar_Sort( void )
 	}
 
 	Cvar_QSortByName( &list[0], count-1 );
-	
+
 	cvar_vars = NULL;
 
 	// relink cvars
@@ -1677,4 +1677,3 @@ void Cvar_Defrag(void)
 	lastMemPool = mem;
 	memPoolSize = nextMemPoolSize;
 }
-
