@@ -4,10 +4,8 @@ Only `linux i386` will be supported for the time being.
 
 ### building
 ```shell
-# install build deps (only for host os == Ubuntu/Debian amd64)
-sudo apt build-dep .
-# install build deps (only for host os == Ubuntu/Debian i386)
-sudo apt install cmake
+# install build deps
+sudo apt install make cmake g++-multilib gcc-multilib
 # clone repo
 git clone https://github.com/jampio/jampog
 cd jampog
