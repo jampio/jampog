@@ -18,7 +18,7 @@ clean:
 	@rm -rf build
 
 .PHONY: install
-install:
+install: | /usr/lib32/libcxa.so.1
 	@cmake --build build --target install -- --no-print-directory
 
 build/:
@@ -30,15 +30,6 @@ build/Makefile: | build/
 /usr/lib32/libcxa.so.1:
 	@wget https://github.com/jampio/jampog/releases/download/v1.01/libcxa.so.1 -O $@
 
-/home/$(USER)/.local/share/jampog/base/jampgamei386.so:
-	@mkdir -p /home/$(USER)/.local/share/jampog/base/
-	@wget https://github.com/jampio/jampog/releases/download/v1.01/jampgamei386.so -O $@
-
-game-deps: /usr/lib32/libcxa.so.1 /home/$(USER)/.local/share/jampog/base/jampgamei386.so
-
 build-deps:
 	@apt install make cmake gcc-multilib g++-multilib
 
-.PHONY: assets
-assets:
-	USER=$(USER) scripts/steam.sh

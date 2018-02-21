@@ -7,20 +7,19 @@ Only supports linux i386.
 ```shell
 git clone https://github.com/jampio/jampog
 cd jampog
-sudo make build-deps && make && make install
+sudo make build-deps && make && sudo make install
 ```
 
 ### setup
 ```shell
 sudo adduser jampog
-sudo make game-deps USER=jampog
-make assets USER=jampog
-git clone https://github.com/jampio/jampog-service
-cd jampog-service
-sudo make install USER=jampog
 sudo loginctl enable-linger jampog
 sudo su - jampog
-systemctl --user enable jampog
+git clone https://github.com/jampio/jampog-service
+cd jampog-service
+make assets
+make install
+systemctl enable jampog --user
 ```
 
 ### included fixes
