@@ -30,11 +30,11 @@ build/Makefile: | build/
 /usr/lib32/libcxa.so.1:
 	@wget https://github.com/jampio/jampog/releases/download/v1.01/libcxa.so.1 -O $@
 
-~/.local/share/jampog/base/jampgamei386.so:
-	@mkdir -p ~/.local/share/jampog/base/
+/home/$(USER)/.local/share/jampog/base/jampgamei386.so:
+	@mkdir -p /home/$(USER)/.local/share/jampog/base/
 	@wget https://github.com/jampio/jampog/releases/download/v1.01/jampgamei386.so -O $@
 
-game-deps: /usr/lib32/libcxa.so.1 ~/.local/share/jampog/base/jampgamei386.so
+game-deps: /usr/lib32/libcxa.so.1 /home/$(USER)/.local/share/jampog/base/jampgamei386.so
 
 build-deps:
 	@apt install make cmake gcc-multilib g++-multilib

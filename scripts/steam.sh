@@ -1,5 +1,5 @@
 #!/bin/bash
-mkdir -p ~/.local/share/jampog/base/ &&
+mkdir -p /home/$USER/.local/share/jampog/base/ &&
 apt install steamcmd &&
 read -s -p "Enter Steam Username: " STEAM_USER &&
 echo &&
@@ -10,8 +10,8 @@ echo &&
 	+login $STEAM_USER $STEAM_PASS \
 	+force_install_dir /tmp/SteamJKA \
 	 +app_update 6020 validate +quit &&
-mv /tmp/SteamJKA/GameData/base/assets0.pk3 ~/.local/share/jampog/base/ &&
-mv /tmp/SteamJKA/GameData/base/assets1.pk3 ~/.local/share/jampog/base/ &&
-mv /tmp/SteamJKA/GameData/base/assets2.pk3 ~/.local/share/jampog/base/ &&
-mv /tmp/SteamJKA/GameData/base/assets3.pk3 ~/.local/share/jampog/base/ &&
+mv /tmp/SteamJKA/GameData/base/assets0.pk3 /home/$USER/.local/share/jampog/base/ &&
+mv /tmp/SteamJKA/GameData/base/assets1.pk3 /home/$USER/.local/share/jampog/base/ &&
+mv /tmp/SteamJKA/GameData/base/assets2.pk3 /home/$USER/.local/share/jampog/base/ &&
+mv /tmp/SteamJKA/GameData/base/assets3.pk3 /home/$USER/.local/share/jampog/base/ &&
 rm -rf /tmp/SteamJKA
