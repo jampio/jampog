@@ -7,9 +7,9 @@ Only supports linux i386.
 ```shell
 git clone https://github.com/jampio/jampog
 cd jampog
-sudo make build-deps # installs need APT packages
-sudo make game-deps # downloads basejka linux binaries from github
-sudo make assets # download assets from steam
+sudo make build-deps # installs needed APT packages
+sudo make game-deps  # downloads basejka linux binaries from github
+sudo make assets     # download assets from steam
 make
 sudo make install
 jampog +map mp/ffa
