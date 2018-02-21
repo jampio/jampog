@@ -1,18 +1,17 @@
 # jampog
-The project aims to support vanilla basejka without recompiling by means of runtime patching and/or intervening of syscalls.
-Only `linux i386` will be supported for the time being.
+An engine that patches basejka at runtime to add new features or bug fixes as needed.
+
+Only supports linux i386.
 
 ### building
 ```shell
-# install build deps
-sudo apt install make cmake g++-multilib gcc-multilib
-# clone repo
 git clone https://github.com/jampio/jampog
 cd jampog
-# build
+sudo make build-deps
+sudo make game-deps
 make
-# will install to /usr/local/bin/jampog
 sudo make install
+jampog +map mp/ffa
 ```
 
 ### included fixes
