@@ -10,7 +10,7 @@ cd jampog
 sudo make build-deps && make && sudo make install
 ```
 
-### setup
+### setup as a systemd user service
 ```shell
 sudo adduser jampog
 sudo loginctl enable-linger jampog
@@ -18,8 +18,7 @@ sudo su - jampog
 git clone https://github.com/jampio/jampog-service
 cd jampog-service
 make assets
-make install
-systemctl enable jampog --user
+make service
 ```
 
 ### included fixes
