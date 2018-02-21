@@ -1,4 +1,4 @@
-Package: jampog
+Source: jampog
 Section: main
 Priority: optional
 Build-Depends: cmake, gcc-multilib, g++-multilib
