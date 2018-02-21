@@ -39,3 +39,6 @@ game-deps: /usr/lib32/libcxa.so.1 ~/.local/share/jampog/base/jampgamei386.so
 build-deps:
 	@apt install make cmake gcc-multilib g++-multilib
 
+.PHONY: assets
+assets:
+	scripts/steam.sh
