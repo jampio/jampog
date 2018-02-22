@@ -118,6 +118,18 @@ static void ammap(client_t *cl) {
 	console::exec("map %s", Cmd_Argv(1));
 }
 
+static void amtimelimit(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amtimelimit <timelimit>");
+		return;
+	}
+	int timelimit = atoi(Cmd_Argv(1));
+	if (timelimit < 0 || timelimit > 100) {
+		timelimit = 0;
+	}
+	Cvar_Set("timelimit", va("%d", timelimit));
+}
+
 struct Command {
 	const char *name;
 	std::function<void(client_t*)> func;
@@ -135,6 +147,7 @@ static Command cmds[] = {
 static Command admin_cmds[] = {
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
+	{"amtimelimit", amtimelimit, "change timelimit"},
 };
 
 static struct {
