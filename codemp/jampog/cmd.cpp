@@ -4,13 +4,26 @@
 #include <utility>
 #include <functional>
 
-cvar_t *Cvar_FindVar( const char *var_name );
-
+cvar_t *Cvar_FindVar(const char *var_name);
 static cvar_t *admin_password = nullptr;
 
 namespace console {
-	static void writeln(client_t *cl, const char *text) {
-		SV_SendServerCommand(cl, va("print \"%s\n\"", text));
+	template <typename... Args>
+	static void writeln(client_t *cl, const char *fmt, Args... args) {
+		char buffer[2048] = {0};
+		char format[2048] = {0};
+		Com_sprintf(format, sizeof(format), fmt, args...);
+		Q_strcat(buffer, sizeof(buffer), "print \"");
+		Q_strcat(buffer, sizeof(buffer), format);
+		Q_strcat(buffer, sizeof(buffer), "\n\"");
+		SV_SendServerCommand(cl, buffer);
+	}
+	template <typename... Args>
+	static void exec(const char *fmt, Args... args) {
+		char buffer[1024] = {0};
+		Com_sprintf(buffer, sizeof(buffer) - 2, fmt, args...);
+		Q_strcat(buffer, sizeof(buffer), "\n");
+		Cbuf_ExecuteText(EXEC_APPEND, buffer);
 	}
 }
 
@@ -18,7 +31,7 @@ static void players(client_t *cl) {
 	for (int i = 0; i < sv_maxclients->integer; i++) {
 		client_t *c = &svs.clients[i];
 		if (c->state == CS_ACTIVE) {
-			console::writeln(cl, va("%d - %s", c->gentity->s.number, c->name));
+			console::writeln(cl, "%d - %s", c->gentity->s.number, c->name);
 		}
 	}
 }
@@ -42,7 +55,7 @@ static void ammap(client_t *cl) {
 		return;
 	}
 	if (FS_ReadFile(va("maps/%s.bsp", Cmd_Argv(1)), nullptr) == -1) {
-		console::writeln(cl, va("Can't find map %s\n\"", Cmd_Argv(1)));
+		console::writeln(cl, "Can't find map %s", Cmd_Argv(1));
 		return;
 	}
 	if (Cmd_Argc() == 3) {
@@ -90,18 +103,7 @@ static void ammap(client_t *cl) {
 			Cvar_Set("g_gametype", va("%d", new_gt));
 		}
 	}
-	Cbuf_ExecuteText(EXEC_NOW, va("map %s\n", Cmd_Argv(1)));
-}
-
-template <typename Proc>
-static auto admin(Proc &&proc) {
-	return [proc = std::forward<Proc>(proc)](client_t *cl) {
-		if (!cl->admin.logged_in) {
-			SV_SendServerCommand(cl, "print \"You are not logged in.\n\"");
-			return;
-		}
-		proc(cl);
-	};
+	console::exec("map %s", Cmd_Argv(1));
 }
 
 struct Command {
@@ -114,20 +116,34 @@ static void info(client_t*);
 
 static Command cmds[] = {
 	{"info", info, "show this"},
-	{"aminfo", info, "show this"},
 	{"players", players, "show a list of players"},
-	{"showplayerid", players, "show a list of players"},
 	{"login", login, "login to admin"},
-	{"amlogin", login, "login to admin"}
 };
 
 static Command admin_cmds[] = {
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"}
 };
 
-static const char *pad(const char *text) {
+static struct {
+	const char *alias;
+	const char *orig;
+} aliases[] = {
+	{"amlogin", "login"},
+	{"showplayerid", "players"},
+	{"aminfo", "info"}
+};
+
+static const char *unalias(const char *arg) {
+	for (auto &it: aliases) {
+		if (!strcmp(arg, it.alias)) {
+			return it.orig;
+		}
+	}
+	return arg;
+}
+
+static const char *pad(const char *text, const int PAD = 24) {
 	static char buffer[1024];
-	constexpr auto PAD = 24;
 	const size_t len = strlen(text);
 	if (len >= sizeof(buffer)) {
 		fprintf(stderr, "len is larger than buffer\n");
@@ -146,39 +162,52 @@ static const char *pad(const char *text) {
 	return buffer;
 }
 
-constexpr auto INFO = R"INFO(
-^5** jampog **^7
-An engine that runtime patches basejka.
-
-sv_pure: %d
-sv_fps: %d
+constexpr auto INFO = R"INFO(^5jampog:^7 An engine that runtime patches basejka.
+sv_pure:    ^3%d^7
+sv_fps:     ^3%s^7%s(your snaps: ^3%d^7)
+sv_maxRate: ^3%s^7%s(your rate:  ^3%d^7)
 
 commands:)INFO";
 
 static void info(client_t *cl) {
-	console::writeln(cl, va(INFO, sv_pure->integer, sv_fps->integer));
+	{
+		char fps[16];
+		Com_sprintf(fps, sizeof(fps), "%d", sv_fps->integer);
+		char maxRate[32];
+		Com_sprintf(maxRate, sizeof(maxRate), "%d", sv_maxRate->integer);
+		char pad1[64];
+		Q_strncpyz(pad1, pad(fps, 8), sizeof(pad1));
+		char pad2[64];
+		Q_strncpyz(pad2, pad(maxRate, 8), sizeof(pad2));
+		console::writeln(cl, INFO,
+			sv_pure->integer,
+			fps, pad1, 1000 / cl->snapshotMsec,
+			maxRate, pad2, cl->rate
+		);
+	}
 	for (auto &cmd: cmds) {
-		console::writeln(cl, va("^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc));
+		console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
 	}
 	if (cl->admin.logged_in) {
 		for (auto &cmd: admin_cmds) {
-			console::writeln(cl, va("^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc));
+			console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
 		}
 	}
 }
 
 bool jampog::command(client_t *cl) {
-	if (!strcmp(Cmd_Argv(0), "gc")) {
+	const char * const arg0 = unalias(Cmd_Argv(0));
+	if (!strcmp(arg0, "gc")) {
 		return true;
 	}
 	for (auto &cmd: cmds) {
-		if (!strcmp(Cmd_Argv(0), cmd.name)) {
+		if (!strcmp(arg0, cmd.name)) {
 			cmd.func(cl);
 			return true;
 		}
 	}
 	for (auto &cmd: admin_cmds) {
-		if (!strcmp(Cmd_Argv(0), cmd.name)) {
+		if (!strcmp(arg0, cmd.name)) {
 			if (cl->admin.logged_in) {
 				cmd.func(cl);
 			} else {
