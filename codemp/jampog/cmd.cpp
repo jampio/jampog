@@ -49,6 +49,18 @@ static void login(client_t *cl) {
 	}
 }
 
+static void amduelfraglimit(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amduelfraglimit <fraglimit>");
+		return;
+	}
+	int fraglimit = atoi(Cmd_Argv(1));
+	if (fraglimit < 0 || fraglimit > 100) {
+		fraglimit = 0;
+	}
+	Cvar_Set("duel_fraglimit", va("%d", fraglimit));
+}
+
 static void amfraglimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amfraglimit <fraglimit>");
@@ -145,6 +157,7 @@ static Command cmds[] = {
 };
 
 static Command admin_cmds[] = {
+	{"amduelfraglimit", amduelfraglimit, "change duel fraglimit"},
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
 	{"amtimelimit", amtimelimit, "change timelimit"},
