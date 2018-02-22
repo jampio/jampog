@@ -130,6 +130,10 @@ static void ammap(client_t *cl) {
 	console::exec("map %s", Cmd_Argv(1));
 }
 
+static void ammaprestart(client_t *cl) {
+	console::exec("map_restart");
+}
+
 static void amtimelimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amtimelimit <timelimit>");
@@ -160,6 +164,7 @@ static Command admin_cmds[] = {
 	{"amduelfraglimit", amduelfraglimit, "change duel fraglimit"},
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
+	{"ammaprestart", ammaprestart, "restart map"},
 	{"amtimelimit", amtimelimit, "change timelimit"},
 };
 
@@ -169,7 +174,9 @@ static struct {
 } aliases[] = {
 	{"amlogin", "login"},
 	{"showplayerid", "players"},
-	{"aminfo", "info"}
+	{"aminfo", "info"},
+	{"amrestart", "ammaprestart"},
+	{"ammap_restart", "ammaprestart"}
 };
 
 static const char *unalias(const char *arg) {
