@@ -179,6 +179,25 @@ static void amtimelimit(client_t *cl) {
 	Cvar_Set("timelimit", va("%d", timelimit));
 }
 
+static void amweapondisable(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amweapondisable <number> | saberonly | sabermeleeonly");
+		return;
+	}
+	int disable;
+	if (!strcmp(Cmd_Argv(1), "saberonly")) {
+		disable = 131063;
+	} else if (!strcmp(Cmd_Argv(1), "sabermeleeonly")) {
+		disable = 131059;
+	} else {
+		disable = atoi(Cmd_Argv(1));
+	}
+	if (disable < 0) {
+		disable = 0;
+	}
+	Cvar_Set("g_weaponDisable", va("%d", disable));
+}
+
 struct Command {
 	const char *name;
 	std::function<void(client_t*)> func;
@@ -201,6 +220,7 @@ static Command admin_cmds[] = {
 	{"ammaprestart", ammaprestart, "restart map"},
 	{"amnoclip", amnoclip, "toggle noclip"},
 	{"amtimelimit", amtimelimit, "change timelimit"},
+	{"amweapondisable", amweapondisable, "disable weapons"},
 };
 
 static struct {
