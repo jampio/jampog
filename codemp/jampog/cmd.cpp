@@ -3,6 +3,9 @@
 #include <memory>
 #include <utility>
 #include <functional>
+#include "Entity.h"
+#include "init.h"
+#include "offsets.h"
 
 cvar_t *Cvar_FindVar(const char *var_name);
 static cvar_t *admin_password = nullptr;
@@ -134,6 +137,19 @@ static void ammaprestart(client_t *cl) {
 	console::exec("map_restart");
 }
 
+static void amnoclip(client_t *cl) {
+	#if 0
+	auto player = jampog::Client::from_number(cl->gentity->s.number);
+	player.set_noclip(!player.noclip());
+	if (player.noclip()) {
+		console::writeln(cl, "noclip on");
+	} else {
+		console::writeln(cl, "noclip off");
+	}
+	#endif
+	console::writeln(cl, "work in progress");
+}
+
 static void amtimelimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amtimelimit <timelimit>");
@@ -165,6 +181,7 @@ static Command admin_cmds[] = {
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
 	{"ammaprestart", ammaprestart, "restart map"},
+	{"amnoclip", amnoclip, "toggle noclip"},
 	{"amtimelimit", amtimelimit, "change timelimit"},
 };
 

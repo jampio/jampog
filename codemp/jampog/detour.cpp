@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <link.h>
 
 static inline uintptr_t pagealign(const uintptr_t p) {
 	const uintptr_t pageSize = uintptr_t(sysconf(_SC_PAGESIZE));
@@ -22,6 +23,20 @@ static void protect(const void * const addr, const size_t len,
 }
 
 namespace jampog {
+
+uintptr_t dladdress(void * const handle) {
+	void *map;
+	const int res = dlinfo(handle, RTLD_DI_LINKMAP, &map);
+	if (res) {
+		fprintf(stderr, "dladdress failed: %s\n", dlerror());
+		exit(EXIT_FAILURE);
+	}
+	return ((struct link_map*)map)->l_addr;
+}
+
+void unprotect(const void * const addr, const size_t len) {
+	protect(addr, len);
+}
 
 void detour(void * const before, const void * const after) {
 	protect(before, 5);

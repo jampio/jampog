@@ -645,6 +645,8 @@ if(BuildMPDed)
 	set(MPDedFiles ${MPDedFiles} ${MPDedNullFiles})
 
 	set(MPJampogFiles
+		"${MPDir}/jampog/base.h"
+		"${MPDir}/jampog/base.cpp"
 		"${MPDir}/jampog/clean_name.cpp"
 		"${MPDir}/jampog/clean_name.h"
 		"${MPDir}/jampog/cmd.cpp"

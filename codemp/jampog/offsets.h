@@ -24,6 +24,14 @@ static inline clientPersistant_t *client_pers(void *client) {
 	return (clientPersistant_t*)((uintptr_t)client + 1552);
 }
 
+static inline qboolean client_noclip(void *client) {
+	return *(qboolean*)((uintptr_t)client + 6356);
+}
+
+static inline void client_set_noclip(void *client, qboolean value) {
+	*(qboolean*)((uintptr_t)client + 6356) = value;
+}
+
 static inline void client_set_invulnerableTimer(void *client, int value) {
 	*(int*)((uintptr_t)client + 6328) = value;
 }
