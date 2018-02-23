@@ -64,9 +64,9 @@ static void amduelfraglimit(client_t *cl) {
 	Cvar_Set("duel_fraglimit", va("%d", fraglimit));
 }
 
-static void amforcedisable(client_t *cl) {
+static void amforcepowerdisable(client_t *cl) {
 	if (Cmd_Argc() != 2) {
-		console::writeln(cl, "amforcedisable <number>|nf");
+		console::writeln(cl, "amforcepowerdisable <number> | nf");
 		return;
 	}
 	int disable;
@@ -195,7 +195,7 @@ static Command cmds[] = {
 
 static Command admin_cmds[] = {
 	{"amduelfraglimit", amduelfraglimit, "change duel fraglimit"},
-	{"amforcedisable", amforcedisable, "disable force"},
+	{"amforcepowerdisable", amforcepowerdisable, "disable force"},
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
 	{"ammaprestart", ammaprestart, "restart map"},
@@ -211,7 +211,8 @@ static struct {
 	{"showplayerid", "players"},
 	{"aminfo", "info"},
 	{"amrestart", "ammaprestart"},
-	{"ammap_restart", "ammaprestart"}
+	{"ammap_restart", "ammaprestart"},
+	{"amforcedisable", "amforcepowerdisable"}
 };
 
 static const char *unalias(const char *arg) {
