@@ -64,6 +64,25 @@ static void amduelfraglimit(client_t *cl) {
 	Cvar_Set("duel_fraglimit", va("%d", fraglimit));
 }
 
+static void amduelweapondisable(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amduelweapondisable <number> | saberonly | sabermeleeonly");
+		return;
+	}
+	int disable;
+	if (!strcmp(Cmd_Argv(1), "saberonly")) {
+		disable = 131063;
+	} else if (!strcmp(Cmd_Argv(1), "sabermeleeonly")) {
+		disable = 131059;
+	} else {
+		disable = atoi(Cmd_Argv(1));
+	}
+	if (disable < 0) {
+		disable = 0;
+	}
+	Cvar_Set("g_duelWeaponDisable", va("%d", disable));
+}
+
 static void amforcepowerdisable(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amforcepowerdisable <number> | nf");
@@ -214,6 +233,7 @@ static Command cmds[] = {
 
 static Command admin_cmds[] = {
 	{"amduelfraglimit", amduelfraglimit, "change duel fraglimit"},
+	{"amduelweapondisable", amduelweapondisable, "disable weapons (in duel gametype)"},
 	{"amforcepowerdisable", amforcepowerdisable, "disable force"},
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
