@@ -52,6 +52,25 @@ static void login(client_t *cl) {
 	}
 }
 
+static void where(client_t *cl) {
+	if (Cmd_Argc() == 2) {
+		if (cl->admin.logged_in) {
+			auto ent = jampog::Entity(SV_GentityNum(atoi(Cmd_Argv(1))));
+			if (ent.inuse()) {
+				auto orig = ent.origin();
+				console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
+			} else {
+				console::writeln(cl, "Entity not in use");
+			}
+		} else {
+			console::writeln(cl, "You are not logged in.");
+		}
+	} else {
+		vec_t *orig = cl->gentity->playerState->origin;
+		console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
+	}
+}
+
 static void amduelfraglimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amduelfraglimit <fraglimit>");
@@ -186,6 +205,18 @@ static void amnoclip(client_t *cl) {
 	console::writeln(cl, "work in progress");
 }
 
+static void amtele(client_t *cl) {
+	if (Cmd_Argc() != 4) {
+		console::writeln(cl, "amtele x y z");
+		return;
+	}
+	auto x = float(atof(Cmd_Argv(1)));
+	auto y = float(atof(Cmd_Argv(2)));
+	auto z = float(atof(Cmd_Argv(3)));
+	vec3_t orig = {x, y, z};
+	jampog::Entity(cl).teleport(orig);
+}
+
 static void amtimelimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amtimelimit <timelimit>");
@@ -229,6 +260,7 @@ static Command cmds[] = {
 	{"info", info, "show this"},
 	{"players", players, "show a list of players"},
 	{"login", login, "login to admin"},
+	{"where", where, "display origin"},
 };
 
 static Command admin_cmds[] = {
@@ -239,6 +271,7 @@ static Command admin_cmds[] = {
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
 	{"ammaprestart", ammaprestart, "restart map"},
 	{"amnoclip", amnoclip, "toggle noclip"},
+	{"amtele", amtele, "teleport"},
 	{"amtimelimit", amtimelimit, "change timelimit"},
 	{"amweapondisable", amweapondisable, "disable weapons"},
 };
@@ -252,7 +285,9 @@ static struct {
 	{"aminfo", "info"},
 	{"amrestart", "ammaprestart"},
 	{"ammap_restart", "ammaprestart"},
-	{"amforcedisable", "amforcepowerdisable"}
+	{"amforcedisable", "amforcepowerdisable"},
+	{"origin", "where"},
+	{"amorigin", "where"}
 };
 
 static const char *unalias(const char *arg) {

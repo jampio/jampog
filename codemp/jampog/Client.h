@@ -22,7 +22,7 @@ public:
 		: Client((uintptr_t)ptr)
 	{}
 	static void *start() {
-		return (void*)((uintptr_t)get_base() + GCLIENT_OFS);
+		return (void*)(base_addr() + GCLIENT_OFS);
 	}
 	static constexpr size_t size() {
 		return SIZE;
