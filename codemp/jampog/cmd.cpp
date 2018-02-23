@@ -64,6 +64,23 @@ static void amduelfraglimit(client_t *cl) {
 	Cvar_Set("duel_fraglimit", va("%d", fraglimit));
 }
 
+static void amforcedisable(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amforcedisable <number>|nf");
+		return;
+	}
+	int disable;
+	if (!strcmp(Cmd_Argv(1), "nf")) {
+		disable = 163837;
+	} else {
+		disable = atoi(Cmd_Argv(1));
+	}
+	if (disable < 0) {
+		disable = 0;
+	}
+	Cvar_Set("g_forcePowerDisable", va("%d", disable));
+}
+
 static void amfraglimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amfraglimit <fraglimit>");
@@ -178,6 +195,7 @@ static Command cmds[] = {
 
 static Command admin_cmds[] = {
 	{"amduelfraglimit", amduelfraglimit, "change duel fraglimit"},
+	{"amforcedisable", amforcedisable, "disable force"},
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
 	{"ammaprestart", ammaprestart, "restart map"},
