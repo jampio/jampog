@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "game/bg_public.h"
 #include "rd-common/tr_public.h"
 #include "jampog/cmd.h"
+#include "jampog/ClientFPS.h"
 
 //=============================================================================
 
@@ -193,6 +194,7 @@ typedef struct client_s {
 	demoInfo_t		demo;
 
 	jampog::Admin 	admin;
+	jampog::ClientFPS clientFPS;
 } client_t;
 
 //=============================================================================

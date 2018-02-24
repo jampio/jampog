@@ -327,6 +327,8 @@ sv_pure:    ^3%d^7
 sv_fps:     ^3%s^7%s(your snaps: ^3%d^7)
 sv_maxRate: ^3%s^7%s(your rate:  ^3%d^7)
 
+your client fps: ^3%d^7
+
 commands:)INFO";
 
 // following rate adjustments per SV_RateMsec
@@ -357,7 +359,8 @@ static void info(client_t *cl) {
 		console::writeln(cl, INFO,
 			sv_pure->integer,
 			fps, pad1, 1000 / cl->snapshotMsec,
-			maxRate, pad2, adjust_rate(cl->rate)
+			maxRate, pad2, adjust_rate(cl->rate),
+			cl->clientFPS.fps()
 		);
 	}
 	for (auto &cmd: cmds) {

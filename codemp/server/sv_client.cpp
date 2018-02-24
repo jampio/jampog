@@ -1383,6 +1383,7 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 		return;		// may have been kicked during the last usercmd
 	}
 
+	cl->clientFPS.update(sv.time);
 	GVM_ClientThink( cl - svs.clients, NULL );
 }
 
