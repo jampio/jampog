@@ -53,22 +53,19 @@ static void login(client_t *cl) {
 }
 
 static void where(client_t *cl) {
-	if (Cmd_Argc() == 2) {
-		if (cl->admin.logged_in) {
-			auto ent = jampog::Entity(SV_GentityNum(atoi(Cmd_Argv(1))));
-			if (ent.inuse()) {
-				auto orig = ent.origin();
-				console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
-			} else {
-				console::writeln(cl, "Entity not in use");
-			}
-		} else {
-			console::writeln(cl, "You are not logged in.");
-		}
-	} else {
-		vec_t *orig = cl->gentity->playerState->origin;
-		console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
+	if (Cmd_Argc() == 2 && !cl->admin.logged_in) {
+		console::writeln(cl, "You are not logged in.");
+		return;
 	}
+	jampog::Entity ent{
+		Cmd_Argc() == 2 ? SV_GentityNum(atoi(Cmd_Argv(1))) : cl->gentity
+	};
+	if (!ent.inuse()) {
+		console::writeln(cl, "Invalid entity number");
+		return;
+	}
+	auto orig = ent.origin();
+	console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
 }
 
 static void amduelfraglimit(client_t *cl) {

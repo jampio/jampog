@@ -49,6 +49,7 @@ public:
 	bool inuse() {
 		return *(qboolean*)(base + INUSE_OFS) == qtrue;
 	}
+	// returns false if player is spectating
 	bool is_player() {
 		return s().eType == ET_PLAYER;
 	}
@@ -67,7 +68,8 @@ public:
 		TeleportPlayer((void*)base, origin, s().angles);
 	}
 	vec3_t& origin() {
-		if (is_player()) {
+		auto ent = (sharedEntity_t*)base;
+		if (ent->s.number >= 0 && ent->s.number < MAX_CLIENTS) {
 			return ps().origin;
 		} else {
 			return r().currentOrigin;
