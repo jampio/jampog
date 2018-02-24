@@ -329,6 +329,21 @@ sv_maxRate: ^3%s^7%s(your rate:  ^3%d^7)
 
 commands:)INFO";
 
+// following rate adjustments per SV_RateMsec
+static int adjust_rate(int rate) {
+	if (sv_maxRate->integer ) {
+		if (sv_maxRate->integer < rate) {
+			rate = sv_maxRate->integer;
+		}
+	}
+	if (sv_minRate->integer) {
+		if (sv_minRate->integer > rate) {
+			rate = sv_minRate->integer;
+		}
+	}
+	return rate;
+}
+
 static void info(client_t *cl) {
 	{
 		char fps[16];
@@ -342,7 +357,7 @@ static void info(client_t *cl) {
 		console::writeln(cl, INFO,
 			sv_pure->integer,
 			fps, pad1, 1000 / cl->snapshotMsec,
-			maxRate, pad2, cl->rate
+			maxRate, pad2, adjust_rate(cl->rate)
 		);
 	}
 	for (auto &cmd: cmds) {
