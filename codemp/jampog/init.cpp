@@ -20,9 +20,11 @@ namespace jampog {
 		patch_clean_name(base);
 		Com_Printf("patching Cmd_EngageDuel_f\n");
 		patch_engage_duel(base);
+		#if 0
 		Com_Printf("unprotect g_entities[]\n");
 		unprotect(Entity::start(), Entity::array_size());
 		Com_Printf("unprotect g_clients[]\n");
 		unprotect(Client::start(), Client::array_size());
+		#endif
 	}
 }

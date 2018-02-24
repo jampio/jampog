@@ -1,41 +1,103 @@
 #pragma once
 
-#include "clientPersistant_t.h"
-#include "clientSession_t.h"
-#include "renderInfo_t.h"
+namespace jampog {
+	typedef enum {
+		TEAM_FREE,
+		TEAM_RED,
+		TEAM_BLUE,
+		TEAM_SPECTATOR,
 
-struct gentity_t;
-
-struct gclient_t {
-	// ps MUST be the first element, because the server expects it
-	playerState_t	ps;				// communicated by server to clients
-
-	// the rest of the structure is private to game
-	clientPersistant_t	pers;
-	clientSession_t		sess;
-
-	saberInfo_t	saber[MAX_SABERS];
-	void		*weaponGhoul2[MAX_SABERS];
-
-	int			tossableItemDebounce;
-
-	int			bodyGrabTime;
-	int			bodyGrabIndex;
-
-	int			pushEffectTime;
-
-	int			invulnerableTimer;
-
-	int			saberCycleQueue;
-
-	int			legsAnimExecute;
-	int			torsoAnimExecute;
-	qboolean	legsLastFlip;
-	qboolean	torsoLastFlip;
-
-	qboolean	readyToExit;		// wishes to leave the intermission
-
-	qboolean	noclip;
+		TEAM_NUM_TEAMS
+	} Team;
+	typedef enum {
+		SPECTATOR_NOT,
+		SPECTATOR_FREE,
+		SPECTATOR_FOLLOW,
+		SPECTATOR_SCOREBOARD
+	} SpectatorState;
+	struct ClientSession {
+		Team		sessionTeam;
+		int			spectatorTime;		// for determining next-in-line to play
+		SpectatorState	spectatorState;
+		int			spectatorClient;	// for chasecam and follow mode
+		int			wins, losses;		// tournament stats
+		int			selectedFP;			// check against this, if doesn't match value in playerstate then update userinfo
+		int			saberLevel;			// similar to above method, but for current saber attack level
+		qboolean	setForce;			// set to true once player is given the chance to set force powers
+		int			updateUITime;		// only update userinfo for FP/SL if < level.time
+		qboolean	teamLeader;			// true when this client is a team leader
+		char		siegeClass[64];
+		char		saberType[64];
+		char		saber2Type[64];
+		int			duelTeam;
+		int			siegeDesiredTeam;
+		int			killCount;
+		int			TKCount;
+		char		IPstring[32];		// yeah, I know, could be 16, but, just in case...
+	};
+	enum {
+		CON_DISCONNECTED,
+		CON_CONNECTING,
+		CON_CONNECTED
+	};
+	typedef int ClientConnected;
+	typedef enum {
+		TEAM_BEGIN,		// Beginning a team game, spawn at base
+		TEAM_ACTIVE		// Now actively playing
+	} PlayerTeamStateState;
+	struct PlayerTeamState {
+		PlayerTeamStateState	state;
+		int			location;
+		int			captures;
+		int			basedefense;
+		int			carrierdefense;
+		int			flagrecovery;
+		int			fragcarrier;
+		int			assists;
+		float		lasthurtcarrier;
+		float		lastreturnedflag;
+		float		flagsince;
+		float		lastfraggedcarrier;
+	};
+	struct ClientPersistant {
+		ClientConnected	connected;
+		usercmd_t	cmd;				// we would lose angles if not persistant
+		qboolean	localClient;		// true if "ip" info key is "localhost"
+		qboolean	initialSpawn;		// the first spawn should be at a cool location
+		qboolean	predictItemPickup;	// based on cg_predictItems userinfo
+		qboolean	pmoveFixed;			//
+		char		netname[MAX_NETNAME];
+		int			netnameTime;				// Last time the name was changed
+		int			maxHealth;			// for handicapping
+		int			enterTime;			// level.time the client entered the game
+		PlayerTeamState teamState;	// status in teamplay games
+		int			voteCount;			// to prevent people from constantly calling votes
+		int			teamVoteCount;		// to prevent people from constantly calling votes
+		qboolean	teamInfo;			// send team overlay updates?
+	};
+	#pragma pack(push, 1)
+	struct GClient {
+		playerState_t	ps;
+		ClientPersistant	pers;
+		ClientSession		sess;
+		saberInfo_t	saber[MAX_SABERS];
+		void		*weaponGhoul2[MAX_SABERS];
+		int			tossableItemDebounce;
+		int			bodyGrabTime;
+		int			bodyGrabIndex;
+		int			pushEffectTime;
+		int			invulnerableTimer;
+		int			saberCycleQueue;
+		int			legsAnimExecute;
+		int			torsoAnimExecute;
+		qboolean	legsLastFlip;
+		qboolean	torsoLastFlip;
+		qboolean	readyToExit;
+		qboolean	noclip;
+	};
+	#pragma pack (pop)
+}
+#if 0
 
 	int			lastCmdTime;		// level.time of last usercmd_t, for EF_CONNECTION
 									// we can't just use pers.lastCommand.time, because
@@ -219,3 +281,4 @@ struct gclient_t {
 	int			otherKillerVehWeapon;
 	int			otherKillerWeaponType;
 };
+#endif

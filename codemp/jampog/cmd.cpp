@@ -6,6 +6,8 @@
 #include "Entity.h"
 #include "init.h"
 #include "offsets.h"
+#include "base.h"
+#include "structs/GClient.h"
 
 cvar_t *Cvar_FindVar(const char *var_name);
 static cvar_t *admin_password = nullptr;
@@ -193,16 +195,17 @@ static void ammaprestart(client_t *cl) {
 }
 
 static void amnoclip(client_t *cl) {
-	#if 0
-	auto player = jampog::Client::from_number(cl->gentity->s.number);
-	player.set_noclip(!player.noclip());
-	if (player.noclip()) {
-		console::writeln(cl, "noclip on");
+	if (cl->admin.logged_in || Cvar_VariableIntegerValue("sv_cheats")) {
+		auto player = jampog::Entity(cl).client();
+		player.set_noclip(!player.noclip());
+		if (player.noclip()) {
+			console::writeln(cl, "noclip ON");
+		} else {
+			console::writeln(cl, "noclip OFF");
+		}
 	} else {
-		console::writeln(cl, "noclip off");
+		console::writeln(cl, "Cheats are not enabled and not logged in");
 	}
-	#endif
-	console::writeln(cl, "work in progress");
 }
 
 static void amtele(client_t *cl) {
@@ -270,7 +273,6 @@ static Command admin_cmds[] = {
 	{"amfraglimit", amfraglimit, "change fraglimit"},
 	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
 	{"ammaprestart", ammaprestart, "restart map"},
-	{"amnoclip", amnoclip, "toggle noclip"},
 	{"amtele", amtele, "teleport"},
 	{"amtimelimit", amtimelimit, "change timelimit"},
 	{"amweapondisable", amweapondisable, "disable weapons"},
@@ -287,7 +289,8 @@ static struct {
 	{"ammap_restart", "ammaprestart"},
 	{"amforcedisable", "amforcepowerdisable"},
 	{"origin", "where"},
-	{"amorigin", "where"}
+	{"amorigin", "where"},
+	{"noclip", "amnoclip"},
 };
 
 static const char *unalias(const char *arg) {
@@ -346,6 +349,7 @@ static void info(client_t *cl) {
 		console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
 	}
 	if (cl->admin.logged_in) {
+		console::writeln(cl, "^5%s^7%s%s", "amnoclip", pad("amnoclip"), "toggle noclip");
 		for (auto &cmd: admin_cmds) {
 			console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
 		}
@@ -372,6 +376,10 @@ bool jampog::command(client_t *cl) {
 			}
 			return true;
 		}
+	}
+	if (!strcmp(arg0, "amnoclip")) {
+		amnoclip(cl);
+		return true;
 	}
 	return false;
 }

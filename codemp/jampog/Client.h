@@ -4,11 +4,12 @@
 #include "server/server.h"
 #include <cstdint>
 #include "structs/clientPersistant_t.h"
+#include "detour.h"
 
 namespace jampog {
 class Client {
 private:
-	static constexpr auto NOCLIP_OFS = 6356;
+	static constexpr auto NOCLIP_OFS = 6316;
 	static constexpr auto PERS_OFS = 1552;
 	static constexpr auto GCLIENT_OFS = 0x00695D00;
 	static constexpr size_t SIZE = 7284;
