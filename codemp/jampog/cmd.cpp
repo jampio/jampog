@@ -32,12 +32,10 @@ namespace console {
 	}
 }
 
-static void players(client_t *cl) {
-	for (int i = 0; i < sv_maxclients->integer; i++) {
-		client_t *c = &svs.clients[i];
-		if (c->state == CS_ACTIVE) {
-			console::writeln(cl, "%d - %s", c->gentity->s.number, c->name);
-		}
+namespace str {
+	template <size_t N>
+	static void cpy(char (&buffer)[N], const char *src) {
+		Q_strncpyz(buffer, src, N);
 	}
 }
 
@@ -258,6 +256,7 @@ struct Command {
 };
 
 static void info(client_t*);
+static void players(client_t *cl);
 
 static Command cmds[] = {
 	{"info", info, "show this"},
@@ -306,16 +305,18 @@ static const char *pad(const char *text, const int PAD = 24) {
 	static char buffer[1024];
 	const size_t len = strlen(text);
 	if (len >= sizeof(buffer)) {
-		fprintf(stderr, "len is larger than buffer\n");
-		exit(EXIT_FAILURE);
+		buffer[0] = 0;
+		Com_Printf("pad(): len is larger than buffer\n");
+		return buffer;
 	}
 	const size_t p = PAD - len;
 	if (p < 0) {
-		fprintf(stderr, "NEGATIVE PAD\n");
-		exit(EXIT_FAILURE);
+		buffer[0] = 0;
+		Com_Printf("pad(): negative pad\n");
+		return buffer;
 	}
 	size_t i = 0;
-	for (; i < p; i++) {
+	for (; i < p && i < sizeof(buffer); i++) {
 		buffer[i] = ' ';
 	}
 	buffer[i] = 0;
@@ -370,6 +371,41 @@ static void info(client_t *cl) {
 		console::writeln(cl, "^5%s^7%s%s", "amnoclip", pad("amnoclip"), "toggle noclip");
 		for (auto &cmd: admin_cmds) {
 			console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
+		}
+	}
+}
+
+static void players(client_t *cl) {
+	char number[4];
+	char rate[8];
+	char snaps[5];
+	char fps[8];
+	char pad1[64];
+	char pad2[64];
+	char pad3[64];
+	char pad4[64];
+	constexpr auto NUMBER_PAD = sizeof(number);
+	constexpr auto NAME_PAD = sizeof(cl->name);
+	constexpr auto RATE_PAD = sizeof(rate) + 1;
+	constexpr auto SNAPS_PAD = sizeof(snaps) + 3;
+	str::cpy(pad1, pad("#", NUMBER_PAD));
+	str::cpy(pad2, pad("name", NAME_PAD));
+	str::cpy(pad3, pad("rate", RATE_PAD));
+	str::cpy(pad4, pad("snaps", SNAPS_PAD));
+	console::writeln(cl, "#%sname%srate%ssnaps%sfps", pad1, pad2, pad3, pad4);
+	for (int i = 0; i < sv_maxclients->integer; i++) {
+		client_t *it = &svs.clients[i];
+		if (it->state == CS_ACTIVE) {
+			Com_sprintf(number, sizeof(number), "%d", it->gentity->s.number);
+			Com_sprintf(rate, sizeof(rate), "%d", adjust_rate(it->rate));
+			Com_sprintf(snaps, sizeof(snaps), "%d", 1000 / it->snapshotMsec);
+			Com_sprintf(fps, sizeof(fps), "%d", it->clientFPS.fps());
+			str::cpy(pad1, pad(number, NUMBER_PAD));
+			str::cpy(pad2, pad(it->name, NAME_PAD));
+			str::cpy(pad3, pad(rate, RATE_PAD));
+			str::cpy(pad4, pad(snaps, SNAPS_PAD));
+			console::writeln(cl, "%s%s%s%s%s%s%s%s%s",
+				number, pad1, it->name, pad2, rate, pad3, snaps, pad4, fps);
 		}
 	}
 }
