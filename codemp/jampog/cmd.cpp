@@ -204,15 +204,40 @@ static void amnoclip(client_t *cl) {
 }
 
 static void amtele(client_t *cl) {
-	if (Cmd_Argc() != 4) {
-		console::writeln(cl, "amtele x y z");
-		return;
+	if (Cmd_Argc() == 1) {
+		if (cl->telemark.is_marked()) {
+			jampog::Entity(cl).teleport(cl->telemark.get());
+		} else {
+			console::writeln(cl, "Telemark not set");
+		}
+	} else if (Cmd_Argc() == 2) {
+		jampog::Entity to{atoi(Cmd_Argv(1))};
+		if (to.inuse()) {
+			jampog::Entity(cl).teleport(to);
+		} else {
+			console::writeln(cl, "Invalid entity");
+		}
+	} else if (Cmd_Argc() == 3) {
+		jampog::Entity a{atoi(Cmd_Argv(1))};
+		jampog::Entity b{atoi(Cmd_Argv(2))};
+		if (a.inuse() && b.inuse()) {
+			a.teleport(b);
+		} else {
+			console::writeln(cl, "Invalid entity");
+		}
+	} else if (Cmd_Argc() == 4) {
+		jampog::Entity(cl).teleport(
+			float(atof(Cmd_Argv(1))),
+			float(atof(Cmd_Argv(2))),
+			float(atof(Cmd_Argv(3)))
+		);
 	}
-	auto x = float(atof(Cmd_Argv(1)));
-	auto y = float(atof(Cmd_Argv(2)));
-	auto z = float(atof(Cmd_Argv(3)));
-	vec3_t orig = {x, y, z};
-	jampog::Entity(cl).teleport(orig);
+}
+
+static void amtelemark(client_t *cl) {
+	auto origin = jampog::Entity(cl).origin();
+	cl->telemark.set(origin[0], origin[1], origin[2]);
+	console::writeln(cl, "telemark set");
 }
 
 static void amtimelimit(client_t *cl) {
@@ -255,39 +280,40 @@ struct Command {
 static void info(client_t*);
 static void players(client_t *cl);
 
-static Command cmds[] = {
-	{"info", info, "show this"},
-	{"players", players, "show a list of players"},
-	{"login", login, "login to admin"},
-	{"where", where, "display origin"},
-};
+static Command cmds[] = 
+	{ {"info", info, "show this"}
+	, {"players", players, "show a list of players"}
+	, {"login", login, "login to admin"}
+	, {"where", where, "display origin"}
+	};
 
-static Command admin_cmds[] = {
-	{"amduelfraglimit", amduelfraglimit, "change duel fraglimit"},
-	{"amduelweapondisable", amduelweapondisable, "disable weapons (in duel gametype)"},
-	{"amforcepowerdisable", amforcepowerdisable, "disable force"},
-	{"amfraglimit", amfraglimit, "change fraglimit"},
-	{"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"},
-	{"ammaprestart", ammaprestart, "restart map"},
-	{"amtele", amtele, "teleport"},
-	{"amtimelimit", amtimelimit, "change timelimit"},
-	{"amweapondisable", amweapondisable, "disable weapons"},
-};
+static Command admin_cmds[] = 
+	{ {"amduelfraglimit", amduelfraglimit, "change duel fraglimit"}
+	, {"amduelweapondisable", amduelweapondisable, "disable weapons (in duel gametype)"}
+	, {"amforcepowerdisable", amforcepowerdisable, "disable force"}
+	, {"amfraglimit", amfraglimit, "change fraglimit"}
+	, {"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"}
+	, {"ammaprestart", ammaprestart, "restart map"}
+	, {"amtele", amtele, "teleport"}
+	, {"amtelemark", amtelemark, "teleport to telemark"}
+	, {"amtimelimit", amtimelimit, "change timelimit"}
+	, {"amweapondisable", amweapondisable, "disable weapons"}
+	};
 
 static struct {
 	const char *alias;
 	const char *orig;
-} aliases[] = {
-	{"amlogin", "login"},
-	{"showplayerid", "players"},
-	{"aminfo", "info"},
-	{"amrestart", "ammaprestart"},
-	{"ammap_restart", "ammaprestart"},
-	{"amforcedisable", "amforcepowerdisable"},
-	{"origin", "where"},
-	{"amorigin", "where"},
-	{"noclip", "amnoclip"},
-};
+} aliases[] = 
+	{ {"amlogin", "login"}
+	, {"showplayerid", "players"}
+	, {"aminfo", "info"}
+	, {"amrestart", "ammaprestart"}
+	, {"ammap_restart", "ammaprestart"}
+	, {"amforcedisable", "amforcepowerdisable"}
+	, {"origin", "where"}
+	, {"amorigin", "where"}
+	, {"noclip", "amnoclip"}
+	};
 
 static const char *unalias(const char *arg) {
 	for (auto &it: aliases) {

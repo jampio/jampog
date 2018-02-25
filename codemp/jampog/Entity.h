@@ -26,6 +26,9 @@ public:
 	Entity(sharedEntity_t *ent)
 		: Entity((void*)ent)
 	{}
+	Entity(int index)
+		: Entity(SV_GentityNum(index))
+	{}
 	static constexpr size_t size() {
 		return SIZE;
 	}
@@ -35,25 +38,31 @@ public:
 	static void *start() {
 		return (void*)(base_addr() + GENTITY_OFS);
 	}
-	entityState_t& s() {
+	entityState_t& s() const {
 		return ((sharedEntity_t*)base)->s;
 	}
-	playerState_t& ps() {
+	playerState_t& ps() const {
 		playerState_t *ps = ((sharedEntity_t*)base)->playerState;
 		if (ps == nullptr) throw "NULL PLAYERSTATE";
 		return *ps;
 	}
-	entityShared_t& r() {
+	entityShared_t& r() const {
 		return ((sharedEntity_t*)base)->r;
 	}
-	bool inuse() {
+	sharedEntity_t& gent() const {
+		return *(sharedEntity_t*)base;
+	}
+	bool inuse() const {
 		return *(qboolean*)(base + INUSE_OFS) == qtrue;
 	}
 	// returns false if player is spectating
-	bool is_player() {
+	bool is_player() const {
 		return s().eType == ET_PLAYER;
 	}
-	int health() {
+	bool is_npc() const {
+		return s().eType == ET_NPC;
+	}
+	int health() const {
 		return *(int*)(base + HEALTH_OFS);
 	}
 	void set_health(int value) {
@@ -67,9 +76,21 @@ public:
 		TeleportPlayer = (decltype(TeleportPlayer))(base_addr() + 0x00146324);
 		TeleportPlayer((void*)base, origin, s().angles);
 	}
-	vec3_t& origin() {
-		auto ent = (sharedEntity_t*)base;
-		if (ent->s.number >= 0 && ent->s.number < MAX_CLIENTS) {
+	void teleport(float x, float y, float z) {
+		vec3_t orig = {x, y, z};
+		teleport(orig);
+	}
+	void teleport(const Entity& To) {
+		float x = To.origin()[0];
+		float y = To.origin()[1];
+		float z = To.origin()[2];
+		if (To.is_player() || To.is_npc()) {
+			z += 120.0f;
+		}
+		teleport(x, y, z);
+	}
+	vec3_t& origin() const {
+		if (s().number >= 0 && s().number < MAX_CLIENTS) {
 			return ps().origin;
 		} else {
 			return r().currentOrigin;
