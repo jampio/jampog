@@ -7,6 +7,8 @@
 #include "Entity.h"
 #include "offsets.h"
 
+qboolean cheats_okay(void *ptr);
+
 namespace jampog {
 	void init(const vm_t * const vm) {
 		Com_Printf("initializing jampog\n");
@@ -20,6 +22,8 @@ namespace jampog {
 		patch_clean_name(base);
 		Com_Printf("patching Cmd_EngageDuel_f\n");
 		patch_engage_duel(base);
+		Com_Printf("patching CheatsOk\n");
+		detour((void*)(base + 0x00129B94), (void*)cheats_okay);
 		#if 0
 		Com_Printf("unprotect g_entities[]\n");
 		unprotect(Entity::start(), Entity::array_size());

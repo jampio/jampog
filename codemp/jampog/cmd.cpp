@@ -39,6 +39,25 @@ namespace str {
 	}
 }
 
+static client_t *client_from_ent(void *ptr) {
+	for (auto i = 0; i < sv_maxclients->integer; i++) {
+		if (svs.clients[i].gentity == ptr) {
+			return &svs.clients[i];
+		}
+	}
+	return nullptr;
+}
+
+qboolean cheats_okay(void *ptr) {
+	auto cl = client_from_ent(ptr);
+	if (Cvar_VariableIntegerValue("sv_cheats") || cl->admin.logged_in) {
+		return qtrue;
+	} else {
+		console::writeln(cl, "You are not logged in.");
+		return qfalse;
+	}
+}
+
 static void login(client_t *cl) {
 	if (cl->admin.logged_in) {
 		console::writeln(cl, "You are logged in.");
@@ -189,6 +208,7 @@ static void ammaprestart(client_t *cl) {
 	console::exec("map_restart");
 }
 
+#if 0
 static void amnoclip(client_t *cl) {
 	if (cl->admin.logged_in || Cvar_VariableIntegerValue("sv_cheats")) {
 		auto player = jampog::Entity(cl).client();
@@ -202,6 +222,7 @@ static void amnoclip(client_t *cl) {
 		console::writeln(cl, "Cheats are not enabled and not logged in");
 	}
 }
+#endif
 
 static void amtele(client_t *cl) {
 	if (Cmd_Argc() == 1) {
@@ -312,7 +333,7 @@ static struct {
 	, {"amforcedisable", "amforcepowerdisable"}
 	, {"origin", "where"}
 	, {"amorigin", "where"}
-	, {"noclip", "amnoclip"}
+	//, {"noclip", "amnoclip"}
 	};
 
 static const char *unalias(const char *arg) {
@@ -385,11 +406,14 @@ static void info(client_t *cl) {
 			, maxRate, pad2, adjust_rate(cl->rate)
 			);
 	}
+	if (cl->admin.logged_in) {
+		console::writeln(cl, "^5Cheat commands are enabled.^7");
+	}
 	for (auto &cmd: cmds) {
 		console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
 	}
 	if (cl->admin.logged_in) {
-		console::writeln(cl, "^5%s^7%s%s", "amnoclip", pad("amnoclip"), "toggle noclip");
+		// console::writeln(cl, "^5%s^7%s%s", "amnoclip", pad("amnoclip"), "toggle noclip");
 		for (auto &cmd: admin_cmds) {
 			console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
 		}
@@ -452,10 +476,12 @@ bool jampog::command(client_t *cl) {
 			return true;
 		}
 	}
+	#if 0
 	if (!strcmp(arg0, "amnoclip")) {
 		amnoclip(cl);
 		return true;
 	}
+	#endif
 	return false;
 }
 
