@@ -348,10 +348,8 @@ static const char *pad(const char *text, const int PAD = 24) {
 
 constexpr auto INFO = R"INFO(^5jampog:^7 An engine that runtime patches basejka.
 sv_pure:    ^3%d^7
-sv_fps:     ^3%s^7%s(your snaps: ^3%d^7)
+sv_fps:     ^3%s^7%s(your snaps: ^3%d^7) (your fps: ^3%d^7)
 sv_maxRate: ^3%s^7%s(your rate:  ^3%d^7)
-
-your client fps: ^3%d^7
 
 commands:)INFO";
 
@@ -380,12 +378,12 @@ static void info(client_t *cl) {
 		Q_strncpyz(pad1, pad(fps, 8), sizeof(pad1));
 		char pad2[64];
 		Q_strncpyz(pad2, pad(maxRate, 8), sizeof(pad2));
-		console::writeln(cl, INFO,
-			sv_pure->integer,
-			fps, pad1, 1000 / cl->snapshotMsec,
-			maxRate, pad2, adjust_rate(cl->rate),
-			cl->clientFPS.fps()
-		);
+		console::writeln
+			( cl, INFO
+			, sv_pure->integer
+			, fps, pad1, 1000 / cl->snapshotMsec, cl->clientFPS.fps()
+			, maxRate, pad2, adjust_rate(cl->rate)
+			);
 	}
 	for (auto &cmd: cmds) {
 		console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
