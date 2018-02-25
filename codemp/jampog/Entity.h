@@ -52,6 +52,9 @@ public:
 	sharedEntity_t& gent() const {
 		return *(sharedEntity_t*)base;
 	}
+	sharedEntity_t *gent_ptr() const {
+		return (sharedEntity_t*)base;
+	}
 	bool inuse() const {
 		return *(qboolean*)(base + INUSE_OFS) == qtrue;
 	}

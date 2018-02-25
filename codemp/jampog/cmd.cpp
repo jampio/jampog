@@ -10,6 +10,7 @@
 #include "structs/GClient.h"
 
 cvar_t *Cvar_FindVar(const char *var_name);
+const char *SV_GetStringEdString(char *refSection, char *refName);
 static cvar_t *admin_password = nullptr;
 
 namespace console {
@@ -145,6 +146,30 @@ static void amfraglimit(client_t *cl) {
 		fraglimit = 0;
 	}
 	Cvar_Set("fraglimit", va("%d", fraglimit));
+}
+
+static void amkick(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amkick <player_id>");
+		return;
+	}
+	int number = atoi(Cmd_Argv(1));
+	if (number < 0 || number >= MAX_CLIENTS) {
+		console::writeln(cl, "Client number out of range");
+		return;
+	}
+	jampog::Entity ent{atoi(Cmd_Argv(1))};
+	if (!ent.inuse()) {
+		console::writeln(cl, "Invalid entity index");
+		return;
+	}
+	auto kick_cl = client_from_ent((void*)ent.gent_ptr());
+	if (kick_cl == nullptr) {
+		console::writeln(cl, "null kick_cl");
+		return;
+	}
+	SV_DropClient(kick_cl, SV_GetStringEdString("MP_SVGAME","WAS_KICKED"));
+	kick_cl->lastPacketTime = svs.time;
 }
 
 static void ammap(client_t *cl) {
@@ -313,6 +338,7 @@ static Command admin_cmds[] =
 	, {"amduelweapondisable", amduelweapondisable, "disable weapons (in duel gametype)"}
 	, {"amforcepowerdisable", amforcepowerdisable, "disable force"}
 	, {"amfraglimit", amfraglimit, "change fraglimit"}
+	, {"amkick", amkick, "kick a player"}
 	, {"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"}
 	, {"ammaprestart", ammaprestart, "restart map"}
 	, {"amtele", amtele, "teleport"}
