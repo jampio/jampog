@@ -661,7 +661,7 @@ SV_WriteBans
 Save bans to file.
 ==================
 */
-static void SV_WriteBans( void )
+void SV_WriteBans( void )
 {
 	int index;
 	fileHandle_t writeto;
@@ -698,7 +698,7 @@ Remove a ban or an exception from the list.
 ==================
 */
 
-static qboolean SV_DelBanEntryFromList( int index ) {
+qboolean SV_DelBanEntryFromList( int index ) {
 	if ( index == serverBansCount - 1 )
 		serverBansCount--;
 	else if ( index < (int)ARRAY_LEN( serverBans ) - 1 )

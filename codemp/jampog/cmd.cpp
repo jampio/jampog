@@ -11,6 +11,8 @@
 
 cvar_t *Cvar_FindVar(const char *var_name);
 const char *SV_GetStringEdString(char *refSection, char *refName);
+qboolean SV_DelBanEntryFromList(int index);
+void SV_WriteBans(void);
 static cvar_t *admin_password = nullptr;
 
 namespace console {
@@ -86,6 +88,71 @@ static void where(client_t *cl) {
 	}
 	auto orig = ent.origin();
 	console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
+}
+
+static void amban(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amban <player_id>");
+		return;
+	}
+	int number = atoi(Cmd_Argv(1));
+	if (number < 0 || number >= MAX_CLIENTS) {
+		console::writeln(cl, "Client number out of range");
+		return;
+	}
+	jampog::Entity ent{atoi(Cmd_Argv(1))};
+	if (!ent.inuse()) {
+		console::writeln(cl, "Invalid entity index");
+		return;
+	}
+	auto kick_cl = client_from_ent((void*)ent.gent_ptr());
+	if (kick_cl == nullptr) {
+		console::writeln(cl, "null kick_cl");
+		return;
+	}
+	netadr_t ip = cl->netchan.remoteAddress;
+	int mask = 32;
+	qboolean isexception = qfalse;
+	if (ip.type != NA_IP) {
+		console::writeln(cl, "Error: Can ban players connected via the internet only.");
+		return;
+	}
+	// first check whether a conflicting ban exists that would supersede the new one.
+	for (int index = 0; index < serverBansCount; index++ ) {
+		auto curban = &serverBans[index];
+		if (curban->subnet <= mask) {
+			if ((curban->isexception || !isexception)
+			    && NET_CompareBaseAdrMask(curban->ip, ip, curban->subnet)) {
+					console::writeln(cl, "Ban supersedes an existing ban");
+					return;
+			}
+		}
+		if (curban->subnet >= mask) {
+			if (!curban->isexception
+			    && isexception
+				&& NET_CompareBaseAdrMask(curban->ip, ip, mask)) {
+				console::writeln(cl, "Ban supersdes an existing ban");
+				return;
+			}
+		}
+	}
+	int index = 0;
+	while (index < serverBansCount) {
+		auto curban = &serverBans[index];
+		if (curban->subnet > mask 
+		    && (!curban->isexception || isexception)
+			&& NET_CompareBaseAdrMask(curban->ip, ip, mask))
+			SV_DelBanEntryFromList(index);
+		else
+			index++;
+	}
+	serverBans[serverBansCount].ip = ip;
+	serverBans[serverBansCount].subnet = mask;
+	serverBans[serverBansCount].isexception = isexception;
+	serverBansCount++;
+	SV_WriteBans();
+	SV_DropClient(kick_cl, SV_GetStringEdString("MP_SVGAME","WAS_KICKED"));
+	kick_cl->lastPacketTime = svs.time;
 }
 
 static void amduelfraglimit(client_t *cl) {
@@ -334,7 +401,8 @@ static Command cmds[] =
 	};
 
 static Command admin_cmds[] = 
-	{ {"amduelfraglimit", amduelfraglimit, "change duel fraglimit"}
+	{ {"amban", amban, "ban a player"}
+	, {"amduelfraglimit", amduelfraglimit, "change duel fraglimit"}
 	, {"amduelweapondisable", amduelweapondisable, "disable weapons (in duel gametype)"}
 	, {"amforcepowerdisable", amforcepowerdisable, "disable force"}
 	, {"amfraglimit", amfraglimit, "change fraglimit"}
