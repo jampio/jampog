@@ -462,9 +462,9 @@ static const char *pad(const char *text, const int PAD = 24) {
 }
 
 constexpr auto INFO = R"INFO(^5jampog:^7 An engine that runtime patches basejka.
-sv_pure:    ^3%d^7
-sv_fps:     ^3%s^7%s(your snaps: ^3%d^7) (your fps: ^3%d^7)
-sv_maxRate: ^3%s^7%s(your rate:  ^3%d^7)
+sv_pure:    ^3%-8d^7
+sv_fps:     ^3%-8d^7 (your snaps: ^3%d^7) (your fps: ^3%d^7)
+sv_maxRate: ^3%-8d^7 (your rate:  ^3%d^7)
 
 commands:)INFO";
 
@@ -484,32 +484,22 @@ static int adjust_rate(int rate) {
 }
 
 static void info(client_t *cl) {
-	{
-		char fps[16];
-		Com_sprintf(fps, sizeof(fps), "%d", sv_fps->integer);
-		char maxRate[32];
-		Com_sprintf(maxRate, sizeof(maxRate), "%d", sv_maxRate->integer);
-		char pad1[64];
-		Q_strncpyz(pad1, pad(fps, 8), sizeof(pad1));
-		char pad2[64];
-		Q_strncpyz(pad2, pad(maxRate, 8), sizeof(pad2));
-		console::writeln
-			( cl, INFO
-			, sv_pure->integer
-			, fps, pad1, 1000 / cl->snapshotMsec, cl->clientFPS.fps()
-			, maxRate, pad2, adjust_rate(cl->rate)
-			);
-	}
+	console::writeln
+		( cl, INFO
+		, sv_pure->integer
+		, sv_fps->integer, 1000 / cl->snapshotMsec, cl->clientFPS.fps()
+		, sv_maxRate->integer, adjust_rate(cl->rate)
+		);
 	if (cl->admin.logged_in) {
 		console::writeln(cl, "^5Cheat commands are enabled.^7");
 	}
 	for (auto &cmd: cmds) {
-		console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
+		console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
 	}
 	if (cl->admin.logged_in) {
-		// console::writeln(cl, "^5%s^7%s%s", "amnoclip", pad("amnoclip"), "toggle noclip");
+		// console::writeln(cl, "^5%-24s^7%s", "amnoclip", "toggle noclip");
 		for (auto &cmd: admin_cmds) {
-			console::writeln(cl, "^5%s^7%s%s", cmd.name, pad(cmd.name), cmd.desc);
+			console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
 		}
 	}
 }
