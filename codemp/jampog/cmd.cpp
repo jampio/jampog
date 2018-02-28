@@ -439,28 +439,6 @@ static const char *unalias(const char *arg) {
 	return arg;
 }
 
-static const char *pad(const char *text, const int PAD = 24) {
-	static char buffer[1024];
-	const size_t len = strlen(text);
-	if (len >= sizeof(buffer)) {
-		buffer[0] = 0;
-		Com_Printf("pad(): len is larger than buffer\n");
-		return buffer;
-	}
-	const size_t p = PAD - len;
-	if (p < 0) {
-		buffer[0] = 0;
-		Com_Printf("pad(): negative pad\n");
-		return buffer;
-	}
-	size_t i = 0;
-	for (; i < p && i < sizeof(buffer); i++) {
-		buffer[i] = ' ';
-	}
-	buffer[i] = 0;
-	return buffer;
-}
-
 constexpr auto INFO = R"INFO(^5jampog:^7 An engine that runtime patches basejka.
 sv_pure:    ^3%-8d^7
 sv_fps:     ^3%-8d^7 (your snaps: ^3%d^7) (your fps: ^3%d^7)
@@ -504,38 +482,27 @@ static void info(client_t *cl) {
 	}
 }
 
+template <size_t N>
+static int color_diff(const char (&buf)[N]) {
+	char nocolor[N];
+	Q_strncpyz(nocolor, buf, N);
+	Q_StripColor(nocolor);
+	return strlen(buf) - strlen(nocolor);
+}
+
 static void players(client_t *cl) {
-	char number[4];
-	char rate[8];
-	char snaps[5];
-	char fps[8];
-	char pad1[64];
-	char pad2[64];
-	char pad3[64];
-	char pad4[64];
-	constexpr auto NUMBER_PAD = sizeof(number);
-	constexpr auto NAME_PAD = sizeof(cl->name);
-	constexpr auto RATE_PAD = sizeof(rate) + 1;
-	constexpr auto SNAPS_PAD = sizeof(snaps) + 3;
-	str::cpy(pad1, pad("#", NUMBER_PAD));
-	str::cpy(pad2, pad("name", NAME_PAD));
-	str::cpy(pad3, pad("rate", RATE_PAD));
-	str::cpy(pad4, pad("snaps", SNAPS_PAD));
-	console::writeln(cl, "#%sname%srate%ssnaps%sfps", pad1, pad2, pad3, pad4);
-	for (int i = 0; i < sv_maxclients->integer; i++) {
-		client_t *it = &svs.clients[i];
-		if (it->state == CS_ACTIVE) {
-			Com_sprintf(number, sizeof(number), "%d", it->gentity->s.number);
-			Com_sprintf(rate, sizeof(rate), "%d", adjust_rate(it->rate));
-			Com_sprintf(snaps, sizeof(snaps), "%d", 1000 / it->snapshotMsec);
-			Com_sprintf(fps, sizeof(fps), "%d", it->clientFPS.fps());
-			str::cpy(pad1, pad(number, NUMBER_PAD));
-			str::cpy(pad2, pad(it->name, NAME_PAD));
-			str::cpy(pad3, pad(rate, RATE_PAD));
-			str::cpy(pad4, pad(snaps, SNAPS_PAD));
-			console::writeln(cl, "%s%s%s%s%s%s%s%s%s",
-				number, pad1, it->name, pad2, rate, pad3, snaps, pad4, fps);
-		}
+	console::writeln(cl, "%-2s %-36s %-8s %-8s %-8s", "#", "name", "rate", "snaps", "fps");
+	for (auto i = 0; i < sv_maxclients->integer; i++) {
+		auto& it = svs.clients[i];
+		if (it.state != CS_ACTIVE) continue;
+		const int offset = color_diff(it.name) + 36;
+		console::writeln(cl, va("%s%d%s", "%-2d %-", offset , "s^7 %-8d %-8d %-8d")
+			, it.gentity->s.number
+			, it.name
+			, adjust_rate(it.rate)
+			, 1000 / it.snapshotMsec
+			, it.clientFPS.fps()
+		);
 	}
 }
 
