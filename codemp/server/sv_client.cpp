@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "server.h"
 #include "qcommon/stringed_ingame.h"
 #include "jampog/cmd.h"
+#include "jampog/clientname.h"
 
 #ifdef USE_INTERNAL_ZLIB
 #include "zlib/zlib.h"
@@ -164,6 +165,7 @@ void SV_DirectConnect( netadr_t from ) {
 		return;
 	}
 
+	Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
 	Q_strncpyz( userinfo, Cmd_Argv(1), sizeof(userinfo) );
 
 	version = atoi( Info_ValueForKey( userinfo, "protocol" ) );
@@ -324,6 +326,7 @@ gotnewcl:
 
 	// save the userinfo
 	Q_strncpyz( newcl->userinfo, userinfo, sizeof(newcl->userinfo) );
+	jampog::check_client_name(newcl);
 
 	// get the game a chance to reject this connection or modify the userinfo
 	denied = GVM_ClientConnect( clientNum, qtrue, qfalse ); // firstTime = qtrue
@@ -1199,6 +1202,8 @@ void SV_UserinfoChanged( client_t *cl ) {
 		SV_DropClient( cl, "userinfo string length exceeded" );
 	else
 		Info_SetValueForKey( cl->userinfo, "ip", ip );
+
+	jampog::check_client_name(cl);
 }
 
 #define INFO_CHANGE_MIN_INTERVAL	6000 //6 seconds is reasonable I suppose
@@ -1210,6 +1215,7 @@ SV_UpdateUserinfo_f
 ==================
 */
 static void SV_UpdateUserinfo_f( client_t *cl ) {
+#if 0
 	char *arg = Cmd_Argv(1);
 
 	// Stop random empty /userinfo calls without hurting anything
@@ -1217,6 +1223,7 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 		return;
 
 	Q_strncpyz( cl->userinfo, arg, sizeof(cl->userinfo) );
+#endif
 
 #ifdef FINAL_BUILD
 	if (cl->lastUserInfoChange > svs.time)
@@ -1236,6 +1243,12 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 		cl->lastUserInfoCount = 0;
 		cl->lastUserInfoChange = svs.time + INFO_CHANGE_MIN_INTERVAL;
 	}
+
+	Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
+	const char *arg = Cmd_Argv(1);
+	if (!strcmp(arg, "")) return;
+
+	Q_strncpyz(cl->userinfo, arg, sizeof(cl->userinfo));
 
 	SV_UserinfoChanged( cl );
 	// call prog code to allow overrides

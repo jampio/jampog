@@ -649,6 +649,10 @@ if(BuildMPDed)
 		"${MPDir}/jampog/base.cpp"
 		"${MPDir}/jampog/clean_name.cpp"
 		"${MPDir}/jampog/clean_name.h"
+		"${MPDir}/jampog/Client.h"
+		"${MPDir}/jampog/ClientFPS.h"
+		"${MPDir}/jampog/clientname.cpp"
+		"${MPDir}/jampog/clientname.h"
 		"${MPDir}/jampog/cmd.cpp"
 		"${MPDir}/jampog/cmd.h"
 		"${MPDir}/jampog/detour.cpp"
@@ -657,6 +661,7 @@ if(BuildMPDed)
 		"${MPDir}/jampog/duel_cull.h"
 		"${MPDir}/jampog/duel.cpp"
 		"${MPDir}/jampog/duel.h"
+		"${MPDir}/jampog/Entity.h"
 		"${MPDir}/jampog/followcycle.cpp"
 		"${MPDir}/jampog/followcycle.h"
 		"${MPDir}/jampog/forcepowers.cpp"
@@ -664,9 +669,11 @@ if(BuildMPDed)
 		"${MPDir}/jampog/game_structs.h"
 		"${MPDir}/jampog/init.cpp"
 		"${MPDir}/jampog/init.h"
-		)
-    source_group("jampog" FILES ${MPJampogFiles})
-    set(MPDedFiles ${MPDedFiles} ${MPJampogFiles})
+		"${MPDir}/jampog/offsets.h"
+		"${MPDir}/jampog/Telemark.h"
+	)
+	source_group("jampog" FILES ${MPJampogFiles})
+	set(MPDedFiles ${MPDedFiles} ${MPJampogFiles})
 
 	if(WIN32)
 		set(MPDedWin32Files

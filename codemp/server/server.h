@@ -155,7 +155,7 @@ typedef struct client_s {
 	int				lastClientCommand;	// reliable client message sequence
 	char			lastClientCommandString[MAX_STRING_CHARS];
 	sharedEntity_t	*gentity;			// SV_GentityNum(clientnum)
-	char			name[MAX_NAME_LENGTH];			// extracted from userinfo, high bits masked
+	char			name[MAX_NETNAME/*MAX_NAME_LENGTH*/];			// extracted from userinfo, high bits masked
 
 	// downloading
 	char			downloadName[MAX_QPATH]; // if not empty string, we are downloading
@@ -194,9 +194,9 @@ typedef struct client_s {
 
 	demoInfo_t		demo;
 
-	jampog::Admin     admin;
-	jampog::ClientFPS clientFPS;
-	jampog::Telemark  telemark;
+	jampog::Admin		admin;
+	jampog::ClientFPS	clientFPS;
+	jampog::Telemark	telemark;
 } client_t;
 
 //=============================================================================
