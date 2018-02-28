@@ -29,6 +29,7 @@ static cvar_t *g_duelArmor = nullptr;
 
 static void holster_saber(void *ent) {
 	if (!client_ps(ent_client(ent))->saberHolstered) {
+		#if 0
 		if (client_saber(ent_client(ent))[0].soundOff) {
 			G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[0].soundOff);
 		}
@@ -36,6 +37,7 @@ static void holster_saber(void *ent) {
 			&& client_saber(ent_client(ent))[1].model[0]) {
 			G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[1].soundOff);
 		}
+		#endif
 		client_ps(ent_client(ent))->weaponTime = 400;
 		client_ps(ent_client(ent))->saberHolstered = 2;
 	}
@@ -44,13 +46,14 @@ static void holster_saber(void *ent) {
 
 static void turn_on_saber(void *ent) {
 	client_ps(ent_client(ent))->saberHolstered = 0;
+	#if 0
 	if (client_saber(ent_client(ent))[0].soundOn) {
 		G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[0].soundOn);
 	}
 	if (client_saber(ent_client(ent))[1].soundOn) {
 		G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[1].soundOn);
 	}
-
+	#endif
 }
 
 static void DuelActive(void *ent) {
