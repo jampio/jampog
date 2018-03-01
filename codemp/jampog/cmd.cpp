@@ -203,6 +203,23 @@ static void amforcepowerdisable(client_t *cl) {
 	Cvar_Set("g_forcePowerDisable", va("%d", disable));
 }
 
+static void amforceregentime(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amforceregentime <number> | default");
+		return;
+	}
+	int time;
+	if (!strcmp(Cmd_Argv(1), "default")) {
+		time = 200;
+	} else {
+		time = atoi(Cmd_Argv(1));
+	}
+	if (time < 0) {
+		time = 0;
+	}
+	Cvar_Set("g_forceRegenTime", va("%d", time));
+}
+
 static void amfraglimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amfraglimit <fraglimit>");
@@ -405,6 +422,7 @@ static Command admin_cmds[] =
 	, {"amduelfraglimit", amduelfraglimit, "change duel fraglimit"}
 	, {"amduelweapondisable", amduelweapondisable, "disable weapons (in duel gametype)"}
 	, {"amforcepowerdisable", amforcepowerdisable, "disable force"}
+	, {"amforceregentime", amforceregentime, "set forceregentime"}
 	, {"amfraglimit", amfraglimit, "change fraglimit"}
 	, {"amkick", amkick, "kick a player"}
 	, {"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"}
