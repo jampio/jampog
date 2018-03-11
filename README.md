@@ -5,18 +5,28 @@ Only supports linux i386.
 
 ### building
 ```shell
-git clone https://github.com/jampio/jampog
-cd jampog
-sudo make build-deps && make && sudo make install
+# For APT users: install build deps
+sudo apt install $(make apt-build-deps)
+# build & install to /usr/local/bin/jampog
+make && sudo make install
+```
+
+### installing assets (using jkpak)
+```shell
+jkpak set-install-path ~/.local/share/jampog/base/
+# install jampgamei386.so & libcxa.so.1
+jkpak install basejka
+# install assets pk3s via steam
+jkpak install steam-assets
 ```
 
 ### setup as a systemd user service
 ```shell
-sudo loginctl enable-linger
 git clone https://github.com/jampio/jampog-service
-cd jampog-service
-make assets
-make service
+cd jampog-service && make install
+sudo loginctl enable-linger
+systemctl enable jampog --user
+systemctl start jampog --user
 ```
 
 ### included fixes

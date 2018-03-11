@@ -18,7 +18,7 @@ clean:
 	@rm -rf build
 
 .PHONY: install
-install: | /usr/lib32/libcxa.so.1
+install:
 	@cmake --build build --target install -- --no-print-directory
 
 build/:
@@ -27,9 +27,6 @@ build/:
 build/Makefile: | build/
 	@cd build && cmake $(CMAKEFLAGS) ..
 
-/usr/lib32/libcxa.so.1:
-	@wget https://github.com/jampio/jampog/releases/download/v1.01/libcxa.so.1 -O $@
-
-build-deps:
-	@apt install make cmake gcc-multilib g++-multilib
+apt-build-deps:
+	@echo cmake gcc-multilib g++-multilib
 
