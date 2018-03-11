@@ -15,7 +15,7 @@ make && sudo make install
 ```shell
 jkpak set-install-path ~/.local/share/jampog/base/
 # install jampgamei386.so & libcxa.so.1
-jkpak install basejka
+sudo jkpak install basejka
 # install assets pk3s via steam
 jkpak install steam-assets
 ```
