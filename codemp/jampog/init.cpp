@@ -30,5 +30,8 @@ namespace jampog {
 		Com_Printf("unprotect g_clients[]\n");
 		unprotect(Client::start(), Client::array_size());
 		#endif
+		Com_Printf("patching bot_honorableduelacceptance\n");
+		// remove cheat protection
+		patch_byte((unsigned char*)(base + 0xE1364), 0);
 	}
 }
