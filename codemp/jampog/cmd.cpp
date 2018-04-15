@@ -227,6 +227,19 @@ static void amforceregentime(client_t *cl) {
 	Cvar_Set("g_forceRegenTime", va("%d", time));
 }
 
+static void amfps(client_t *cl) {
+	if (Cmd_Argc() != 2) {
+		console::writeln(cl, "amfps <20 | 30 | 40>");
+		return;
+	}
+	auto fps = atoi(Cmd_Argv(1));
+	if (fps == 20 || fps == 30 || fps == 40) {
+		Cvar_Set("sv_fps", va("%d", fps));
+	} else {
+		console::writeln(cl, "Invalid fps");
+	}
+}
+
 static void amfraglimit(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amfraglimit <fraglimit>");
@@ -432,6 +445,7 @@ static Command admin_cmds[] =
 	, {"amforcepowerdisable", amforcepowerdisable, "disable force"}
 	, {"amforceregentime", amforceregentime, "set forceregentime"}
 	, {"amfraglimit", amfraglimit, "change fraglimit"}
+	, {"amfps", amfps, "change sv_fps"}
 	, {"amkick", amkick, "kick a player"}
 	, {"ammap", ammap, "change map, <mapname> <optional gametype> ex. ammap mp/duel1 duel"}
 	, {"ammaprestart", ammaprestart, "restart map"}
