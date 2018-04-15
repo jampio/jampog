@@ -427,7 +427,8 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			}
 		}
 
-		if (DuelCull(ent, SV_GentityNum(frame->ps.clientNum))) {
+		if (SV_SvEntityForGentity(SV_GentityNum(frame->ps.clientNum))->snapshot_cull
+		    && DuelCull(ent, SV_GentityNum(frame->ps.clientNum))) {
 			continue;
 		}
 

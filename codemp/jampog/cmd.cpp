@@ -90,6 +90,13 @@ static void where(client_t *cl) {
 	console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
 }
 
+static void snapshot_cull(client_t *cl) {
+	auto svEnt = SV_SvEntityForGentity(cl->gentity);
+	auto msg = svEnt->snapshot_cull ? "^1Disabled snapshot culling^7" : "^2Enabled snapshot culling^7";
+	svEnt->snapshot_cull = !svEnt->snapshot_cull;
+	console::writeln(cl, msg);
+}
+
 static void amban(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amban <player_id>");
@@ -415,6 +422,7 @@ static Command cmds[] =
 	, {"players", players, "show a list of players"}
 	, {"login", login, "login to admin"}
 	, {"where", where, "display origin"}
+	, {"snapshotcull", snapshot_cull, "enable/disable experimental snapshot culling"}
 	};
 
 static Command admin_cmds[] = 
@@ -488,6 +496,9 @@ static void info(client_t *cl) {
 		);
 	if (cl->admin.logged_in) {
 		console::writeln(cl, "^5Cheat commands are enabled.^7");
+	}
+	if (SV_SvEntityForGentity(cl->gentity)->snapshot_cull) {
+		console::writeln(cl, "^2Experimental snapshot culling enabled.^7");
 	}
 	for (auto &cmd: cmds) {
 		console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
