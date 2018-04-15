@@ -27,9 +27,11 @@ static void (*G_SoundOnEnt)(void *ent, int channel, const char *soundPath) = nul
 static cvar_t *g_duelHealth = nullptr;
 static cvar_t *g_duelArmor = nullptr;
 
+#define SEND_DUEL_EVENTS 1
+
 static void holster_saber(void *ent) {
 	if (!client_ps(ent_client(ent))->saberHolstered) {
-		#if 0
+		/* TODO: Causes a crash
 		if (client_saber(ent_client(ent))[0].soundOff) {
 			G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[0].soundOff);
 		}
@@ -37,7 +39,7 @@ static void holster_saber(void *ent) {
 			&& client_saber(ent_client(ent))[1].model[0]) {
 			G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[1].soundOff);
 		}
-		#endif
+		*/
 		client_ps(ent_client(ent))->weaponTime = 400;
 		client_ps(ent_client(ent))->saberHolstered = 2;
 	}
@@ -46,14 +48,14 @@ static void holster_saber(void *ent) {
 
 static void turn_on_saber(void *ent) {
 	client_ps(ent_client(ent))->saberHolstered = 0;
-	#if 0
+	/* TODO: causes a crash
 	if (client_saber(ent_client(ent))[0].soundOn) {
 		G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[0].soundOn);
 	}
 	if (client_saber(ent_client(ent))[1].soundOn) {
 		G_Sound(ent, CHAN_AUTO, client_saber(ent_client(ent))[1].soundOn);
 	}
-	#endif
+	*/
 }
 
 static void DuelActive(void *ent) {
@@ -68,7 +70,9 @@ static void DuelActive(void *ent) {
 		    && client_ps(ent_client(ent))->saberHolstered
 		    && client_ps(ent_client(ent))->duelTime) {
 			turn_on_saber(ent);
-			// G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
+#if SEND_DUEL_EVENTS
+			G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
+#endif
 			client_ps(ent_client(ent))->duelTime = 0;
 			// TODO: add begin sound
 			// trap_SendServerCommand(client_num(g_base, ent), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
@@ -80,7 +84,9 @@ static void DuelActive(void *ent) {
 		    && client_ps(ent_client(duelAgainst))->saberHolstered
 		    && client_ps(ent_client(duelAgainst))->duelTime) {
 			turn_on_saber(duelAgainst);
-			// G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 2);
+#if SEND_DUEL_EVENTS
+			G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 2);
+#endif
 			client_ps(ent_client(duelAgainst))->duelTime = 0;
 			// trap_SendServerCommand(client_num(g_base, duelAgainst), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
 			// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
@@ -98,7 +104,9 @@ static void DuelActive(void *ent) {
 	    || client_ps(ent_client(duelAgainst))->duelIndex != ent_s(ent)->number) {
 
 		client_ps(ent_client(ent))->duelInProgress = qfalse;
-		// G_AddEvent(ent, EV_PRIVATE_DUEL, 0);
+#if SEND_DUEL_EVENTS
+		G_AddEvent(ent, EV_PRIVATE_DUEL, 0);
+#endif
 
 	} else if (ent_health(duelAgainst) < 1
 	           || client_ps(ent_client(duelAgainst))->stats[STAT_HEALTH] < 1) {
@@ -106,8 +114,10 @@ static void DuelActive(void *ent) {
 		client_ps(ent_client(ent))->duelInProgress = qfalse;
 		client_ps(ent_client(duelAgainst))->duelInProgress = qfalse;
 
-		// G_AddEvent(ent, EV_PRIVATE_DUEL, 0);
-		// G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 0);
+#if SEND_DUEL_EVENTS
+		G_AddEvent(ent, EV_PRIVATE_DUEL, 0);
+		G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 0);
+#endif
 
 		if (ent_health(ent) > 0
 		    && client_ps(ent_client(ent))->stats[STAT_HEALTH] > 0) {
@@ -197,8 +207,10 @@ static void EngageDuel(void *ent) {
 			client_ps(ent_client(ent))->duelTime = sv.time + 2000;
 			client_ps(ent_client(challenged))->duelTime = sv.time + 2000;
 
-			// G_AddEvent(ent, EV_PRIVATE_DUEL, 1);
-			// G_AddEvent(challenged, EV_PRIVATE_DUEL, 1);
+#if SEND_DUEL_EVENTS
+			G_AddEvent(ent, EV_PRIVATE_DUEL, 1);
+			G_AddEvent(challenged, EV_PRIVATE_DUEL, 1);
+#endif
 
 			//Holster their sabers now, until the duel starts (then they'll get auto-turned on to look cool)
 			holster_saber(ent);
