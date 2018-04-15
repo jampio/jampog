@@ -97,6 +97,19 @@ static void snapshot_cull(client_t *cl) {
 	console::writeln(cl, msg);
 }
 
+static void amaddbot(client_t *cl) {
+	if (Cmd_Argc() == 2) {
+		auto name = Cmd_Argv(1);
+		console::exec("addbot %s 5", name);
+	} else if (Cmd_Argc() == 3) {
+		auto name = Cmd_Argv(1);
+		auto team = Cmd_Argv(2);
+		console::exec("addbot %s 5 %s", name, team);
+	} else {
+		console::writeln(cl, "amaddbot <name> [team]");
+	}
+}
+
 static void amban(client_t *cl) {
 	if (Cmd_Argc() != 2) {
 		console::writeln(cl, "amban <player_id>");
@@ -439,7 +452,8 @@ static Command cmds[] =
 	};
 
 static Command admin_cmds[] = 
-	{ {"amban", amban, "ban a player"}
+	{ {"amaddbot", amaddbot, "add a bot"} 
+	, {"amban", amban, "ban a player"}
 	, {"amduelfraglimit", amduelfraglimit, "change duel fraglimit"}
 	, {"amduelweapondisable", amduelweapondisable, "disable weapons (in duel gametype)"}
 	, {"amforcepowerdisable", amforcepowerdisable, "disable force"}
