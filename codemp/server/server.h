@@ -50,7 +50,6 @@ typedef struct svEntity_s {
 	int			areanum, areanum2;
 	int			snapshotCounter;	// used to prevent double adding from portal views
 	bool		snapshot_cull {false};
-	bool		nonsolid {false};
 } svEntity_t;
 
 typedef enum {
@@ -199,6 +198,7 @@ typedef struct client_s {
 	jampog::Admin		admin;
 	jampog::ClientFPS	clientFPS;
 	jampog::Telemark	telemark;
+	bool				nonsolid {false};
 } client_t;
 
 //=============================================================================

@@ -76,9 +76,8 @@ static void login(client_t *cl) {
 }
 
 static void nonsolid(client_t *cl) {
-	auto svEnt = SV_SvEntityForGentity(cl->gentity);
-	auto msg = svEnt->nonsolid ? "^1Disabled nonsolid^7" : "^2Enabled nonsolid^7";
-	svEnt->nonsolid = !svEnt->nonsolid;
+	auto msg = cl->nonsolid ? "^1Disabled nonsolid^7" : "^2Enabled nonsolid^7";
+	cl->nonsolid = !cl->nonsolid;
 	console::writeln(cl, msg);
 }
 
@@ -546,7 +545,7 @@ static void info(client_t *cl) {
 	if (SV_SvEntityForGentity(cl->gentity)->snapshot_cull) {
 		console::writeln(cl, "snapshotcull:  ^3%-8s^7", "ON");
 	}
-	if (SV_SvEntityForGentity(cl->gentity)->nonsolid) {
+	if (cl->nonsolid) {
 		console::writeln(cl, "nonsolid:      ^3%-8s^7", "ON");
 	}
 	if (cl->admin.logged_in) {
