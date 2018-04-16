@@ -563,18 +563,19 @@ static int color_diff(const char (&buf)[N]) {
 }
 
 static void players(client_t *cl) {
-	console::writeln(cl, "%-2s %-36s %-8s %-8s %-8s %-8s", "#", "name", "rate", "snaps", "fps", "pmove_fixed");
+	console::writeln(cl, "%-2s %-36s %-8s %-8s %-8s %-12s %-8s", "#", "name", "rate", "snaps", "fps", "pmove_fixed", "jump");
 	for (auto i = 0; i < sv_maxclients->integer; i++) {
 		auto& it = svs.clients[i];
 		if (it.state != CS_ACTIVE) continue;
 		const int offset = color_diff(it.name) + 36;
-		console::writeln(cl, va("%s%d%s", "%-2d %-", offset , "s^7 %-8d %-8d %-8d %-8d")
+		console::writeln(cl, va("%s%d%s", "%-2d %-", offset , "s^7 %-8d %-8d %-8d %-12d %-8d")
 			, it.gentity->s.number
 			, it.name
 			, adjust_rate(it.rate)
 			, 1000 / it.snapshotMsec
 			, it.clientFPS.fps()
 			, jampog::Entity(&it).client().persistant()->pmoveFixed
+			, jampog::Entity(&it).ps().fd.forcePowerLevel[FP_LEVITATION]
 		);
 	}
 }
