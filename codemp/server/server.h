@@ -49,7 +49,6 @@ typedef struct svEntity_s {
 	int			lastCluster;		// if all the clusters don't fit in clusternums
 	int			areanum, areanum2;
 	int			snapshotCounter;	// used to prevent double adding from portal views
-	bool		snapshot_cull {false};
 } svEntity_t;
 
 typedef enum {
@@ -199,6 +198,7 @@ typedef struct client_s {
 	jampog::ClientFPS	clientFPS;
 	jampog::Telemark	telemark;
 	bool				nonsolid {false};
+	bool				snapshotcull {false};
 } client_t;
 
 //=============================================================================

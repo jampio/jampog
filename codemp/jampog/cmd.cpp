@@ -108,9 +108,8 @@ static void where(client_t *cl) {
 }
 
 static void snapshot_cull(client_t *cl) {
-	auto svEnt = SV_SvEntityForGentity(cl->gentity);
-	auto msg = svEnt->snapshot_cull ? "^1Disabled snapshot culling^7" : "^2Enabled snapshot culling^7";
-	svEnt->snapshot_cull = !svEnt->snapshot_cull;
+	auto msg = cl->snapshotcull ? "^1Disabled snapshot culling^7" : "^2Enabled snapshot culling^7";
+	cl->snapshotcull = !cl->snapshotcull;
 	console::writeln(cl, msg);
 }
 
@@ -542,7 +541,7 @@ static void info(client_t *cl) {
 	if (jampog::Entity(cl).client().persistant()->pmoveFixed) {
 		console::writeln(cl, "pmovefixed:    ^3%-8s^7", "ON (125fps)");
 	}
-	if (SV_SvEntityForGentity(cl->gentity)->snapshot_cull) {
+	if (cl->snapshotcull) {
 		console::writeln(cl, "snapshotcull:  ^3%-8s^7", "ON");
 	}
 	if (cl->nonsolid) {
