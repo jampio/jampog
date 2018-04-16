@@ -458,9 +458,9 @@ static Command cmds[] =
 	{ {"info", info, "show this"}
 	, {"players", players, "show a list of players"}
 	, {"login", login, "login to admin"}
-	, {"pmovefixed", pmovefixed, "enable/disable fixed playermovement at 125fps"}
+	, {"pmovefixed", pmovefixed, "use pmove_fixed 1 on server and on your client"}
 	, {"where", where, "display origin"}
-	, {"snapshotcull", snapshot_cull, "enable/disable experimental snapshot culling"}
+	, {"snapshotcull", snapshot_cull, "hide other players while dueling and vice versa"}
 	};
 
 static Command admin_cmds[] = 
@@ -505,12 +505,10 @@ static const char *unalias(const char *arg) {
 	return arg;
 }
 
-constexpr auto INFO = R"INFO(^5jampog:^7 An engine that runtime patches basejka.
-sv_pure:    ^3%-8d^7
-sv_fps:     ^3%-8d^7 (your snaps: ^3%d^7) (your fps: ^3%d^7)
-sv_maxRate: ^3%-8d^7 (your rate:  ^3%d^7)
-
-commands:)INFO";
+constexpr auto INFO = R"INFO(^5jampog:^7 An engine that enhances basejka without recompiling
+sv_pure:       ^3%-8d^7
+sv_fps:        ^3%-8d^7   (your snaps: ^3%d^7) (your fps: ^3%d^7)
+sv_maxRate:    ^3%-8d^7   (your rate:  ^3%d^7))INFO";
 
 // following rate adjustments per SV_RateMsec
 static int adjust_rate(int rate) {
@@ -534,15 +532,16 @@ static void info(client_t *cl) {
 		, sv_fps->integer, 1000 / cl->snapshotMsec, cl->clientFPS.fps()
 		, sv_maxRate->integer, adjust_rate(cl->rate)
 		);
-	if (cl->admin.logged_in) {
-		console::writeln(cl, "^5Cheat commands are enabled.^7");
+	if (jampog::Entity(cl).client().persistant()->pmoveFixed) {
+		console::writeln(cl, "pmovefixed:    ^3%-8s^7", "ON (125fps)");
 	}
 	if (SV_SvEntityForGentity(cl->gentity)->snapshot_cull) {
-		console::writeln(cl, "^2Experimental snapshot culling enabled.^7");
+		console::writeln(cl, "snapshotcull:  ^3%-8s^7", "ON");
 	}
-	if (jampog::Entity(cl).client().persistant()->pmoveFixed) {
-		console::writeln(cl, "^2Using 125fps fixed movement.^7");
+	if (cl->admin.logged_in) {
+		console::writeln(cl, "cheats:        ^3%-8s^7", "ON");
 	}
+	console::writeln(cl, "\ncommands:");
 	for (auto &cmd: cmds) {
 		console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
 	}
