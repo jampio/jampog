@@ -13,6 +13,7 @@ cvar_t *Cvar_FindVar(const char *var_name);
 const char *SV_GetStringEdString(char *refSection, char *refName);
 qboolean SV_DelBanEntryFromList(int index);
 void SV_WriteBans(void);
+void SV_SendConfigstring(client_t *client, int index);
 static cvar_t *admin_password = nullptr;
 
 namespace console {
@@ -72,6 +73,16 @@ static void login(client_t *cl) {
 		cl->admin.logged_in = true;
 		console::writeln(cl, "You are logged in.");
 	}
+}
+
+static void pmovefixed(client_t *cl) {
+	jampog::Entity ent{cl};
+	auto msg = ent.client().persistant()->pmoveFixed ? 
+	           "^1Disabled fixed movement^7" :
+	           "^2Enabled 125fps fixed movement^7";
+	ent.client().persistant()->pmoveFixed = ent.client().persistant()->pmoveFixed ? qfalse : qtrue;
+	console::writeln(cl, msg);
+	SV_SendConfigstring(cl, CS_SYSTEMINFO);
 }
 
 static void where(client_t *cl) {
@@ -447,6 +458,7 @@ static Command cmds[] =
 	{ {"info", info, "show this"}
 	, {"players", players, "show a list of players"}
 	, {"login", login, "login to admin"}
+	, {"pmovefixed", pmovefixed, "enable/disable fixed playermovement at 125fps"}
 	, {"where", where, "display origin"}
 	, {"snapshotcull", snapshot_cull, "enable/disable experimental snapshot culling"}
 	};
@@ -528,6 +540,9 @@ static void info(client_t *cl) {
 	if (SV_SvEntityForGentity(cl->gentity)->snapshot_cull) {
 		console::writeln(cl, "^2Experimental snapshot culling enabled.^7");
 	}
+	if (jampog::Entity(cl).client().persistant()->pmoveFixed) {
+		console::writeln(cl, "^2Using 125fps fixed movement.^7");
+	}
 	for (auto &cmd: cmds) {
 		console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
 	}
@@ -548,17 +563,18 @@ static int color_diff(const char (&buf)[N]) {
 }
 
 static void players(client_t *cl) {
-	console::writeln(cl, "%-2s %-36s %-8s %-8s %-8s", "#", "name", "rate", "snaps", "fps");
+	console::writeln(cl, "%-2s %-36s %-8s %-8s %-8s %-8s", "#", "name", "rate", "snaps", "fps", "pmove_fixed");
 	for (auto i = 0; i < sv_maxclients->integer; i++) {
 		auto& it = svs.clients[i];
 		if (it.state != CS_ACTIVE) continue;
 		const int offset = color_diff(it.name) + 36;
-		console::writeln(cl, va("%s%d%s", "%-2d %-", offset , "s^7 %-8d %-8d %-8d")
+		console::writeln(cl, va("%s%d%s", "%-2d %-", offset , "s^7 %-8d %-8d %-8d %-8d")
 			, it.gentity->s.number
 			, it.name
 			, adjust_rate(it.rate)
 			, 1000 / it.snapshotMsec
 			, it.clientFPS.fps()
+			, jampog::Entity(&it).client().persistant()->pmoveFixed
 		);
 	}
 }

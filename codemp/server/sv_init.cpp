@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/stringed_ingame.h"
 #include "sv_gameapi.h"
 #include "jampog/cmd.h"
+#include "jampog/Entity.h"
 
 /*
 ===============
@@ -38,10 +39,15 @@ Creates and sends the server command necessary to update the CS index for the
 given client
 ===============
 */
-static void SV_SendConfigstring(client_t *client, int index)
+void SV_SendConfigstring(client_t *client, int index)
 {
 	int maxChunkSize = MAX_STRING_CHARS - 24;
 	int len;
+
+	if (index == CS_SYSTEMINFO) {
+		auto value = va("%d", jampog::Entity(client).client().persistant()->pmoveFixed);
+		Info_SetValueForKey_Big(sv.configstrings[index], "pmove_fixed", value);
+	}
 
 	len = strlen(sv.configstrings[index]);
 
