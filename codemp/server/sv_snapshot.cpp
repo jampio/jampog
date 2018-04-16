@@ -54,6 +54,19 @@ SV_EmitPacketEntities
 Writes a delta update of an entityState_t list to the message.
 =============
 */
+bool DuelCull(sharedEntity_t *a, sharedEntity_t *b);
+template <typename F>
+static void WithDuelCull(int clientnum, entityState_t *ent, F&& callback) {
+	if (DuelCull(SV_GentityNum(clientnum), SV_GentityNum(ent->number))) {
+		auto tmp = ent->solid;
+		ent->solid = 0;
+		callback();
+		ent->solid = tmp;
+	} else {
+		callback();
+	}
+}
+
 static void SV_EmitPacketEntities( clientSnapshot_t *from, clientSnapshot_t *to, msg_t *msg ) {
 	entityState_t	*oldent, *newent;
 	int		oldindex, newindex;
@@ -90,7 +103,9 @@ static void SV_EmitPacketEntities( clientSnapshot_t *from, clientSnapshot_t *to,
 			// delta update from old position
 			// because the force parm is qfalse, this will not result
 			// in any bytes being emited if the entity has not changed at all
-			MSG_WriteDeltaEntity (msg, oldent, newent, qfalse );
+			WithDuelCull(to->ps.clientNum, newent, [&]() {
+				MSG_WriteDeltaEntity (msg, oldent, newent, qfalse );
+			});
 			oldindex++;
 			newindex++;
 			continue;
@@ -98,14 +113,18 @@ static void SV_EmitPacketEntities( clientSnapshot_t *from, clientSnapshot_t *to,
 
 		if ( newnum < oldnum ) {
 			// this is a new entity, send it from the baseline
-			MSG_WriteDeltaEntity (msg, &sv.svEntities[newnum].baseline, newent, qtrue );
+			WithDuelCull(to->ps.clientNum, newent, [&]() {
+				MSG_WriteDeltaEntity (msg, &sv.svEntities[newnum].baseline, newent, qtrue );
+			});
 			newindex++;
 			continue;
 		}
 
 		if ( newnum > oldnum ) {
 			// the old entity isn't present in the new message
-			MSG_WriteDeltaEntity (msg, oldent, NULL, qtrue );
+			WithDuelCull(to->ps.clientNum, oldent, [&]() {
+				MSG_WriteDeltaEntity (msg, oldent, NULL, qtrue );
+			});
 			oldindex++;
 			continue;
 		}
