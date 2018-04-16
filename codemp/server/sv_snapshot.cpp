@@ -57,7 +57,8 @@ Writes a delta update of an entityState_t list to the message.
 bool DuelCull(sharedEntity_t *a, sharedEntity_t *b);
 template <typename F>
 static void WithDuelCull(int clientnum, entityState_t *ent, F&& callback) {
-	if (DuelCull(SV_GentityNum(clientnum), SV_GentityNum(ent->number))) {
+	if (SV_SvEntityForGentity(SV_GentityNum(clientnum))->nonsolid
+	    && DuelCull(SV_GentityNum(clientnum), SV_GentityNum(ent->number))) {
 		auto tmp = ent->solid;
 		ent->solid = 0;
 		callback();

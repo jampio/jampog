@@ -75,6 +75,13 @@ static void login(client_t *cl) {
 	}
 }
 
+static void nonsolid(client_t *cl) {
+	auto svEnt = SV_SvEntityForGentity(cl->gentity);
+	auto msg = svEnt->nonsolid ? "^1Disabled nonsolid^7" : "^2Enabled nonsolid^7";
+	svEnt->nonsolid = !svEnt->nonsolid;
+	console::writeln(cl, msg);
+}
+
 static void pmovefixed(client_t *cl) {
 	jampog::Entity ent{cl};
 	auto msg = ent.client().persistant()->pmoveFixed ? 
@@ -458,9 +465,10 @@ static Command cmds[] =
 	{ {"info", info, "show this"}
 	, {"players", players, "show a list of players"}
 	, {"login", login, "login to admin"}
-	, {"pmovefixed", pmovefixed, "use pmove_fixed 1 on server and on your client"}
+	, {"nonsolid", nonsolid, "(experimental) smooths collision between dueling & nondueling players"}
+	, {"pmovefixed", pmovefixed, "(experimental) use pmove_fixed 1 on server and on your client"}
 	, {"where", where, "display origin"}
-	, {"snapshotcull", snapshot_cull, "hide other players while dueling and vice versa"}
+	, {"snapshotcull", snapshot_cull, "(experimental) hide other players while dueling and vice versa"}
 	};
 
 static Command admin_cmds[] = 
@@ -537,6 +545,9 @@ static void info(client_t *cl) {
 	}
 	if (SV_SvEntityForGentity(cl->gentity)->snapshot_cull) {
 		console::writeln(cl, "snapshotcull:  ^3%-8s^7", "ON");
+	}
+	if (SV_SvEntityForGentity(cl->gentity)->nonsolid) {
+		console::writeln(cl, "nonsolid:      ^3%-8s^7", "ON");
 	}
 	if (cl->admin.logged_in) {
 		console::writeln(cl, "cheats:        ^3%-8s^7", "ON");
