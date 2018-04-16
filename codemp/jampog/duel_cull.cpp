@@ -33,12 +33,17 @@ static bool IsNPC(sharedEntity_t *ent) {
 	return ent->s.eType == ET_NPC;
 }
 
+static bool IsMover(sharedEntity_t *ent) {
+	return ent->s.eType == ET_MOVER;
+}
+
 static bool IsDueling(sharedEntity_t *ent) {
 	return IsPlayer(flatten(ent)) && GetPS(flatten(ent))->duelInProgress;
 }
 
 static bool IsActor(sharedEntity_t *ent) {
-	return IsPlayer(flatten(ent)) || IsNPC(flatten(ent));
+	// movers are not safe to flatten
+	return !IsMover(ent) && (IsPlayer(flatten(ent)) || IsNPC(flatten(ent)));
 }
 
 static bool IsDueling(sharedEntity_t *A, sharedEntity_t *B) {
@@ -57,7 +62,7 @@ bool DuelCull(sharedEntity_t *ent, sharedEntity_t *touch) {
 	constexpr auto CULL = true;
 	constexpr auto NO_CULL = !CULL;
 	if (Cvar_VariableIntegerValue("g_gametype") != 0) {
-		return false;
+		return NO_CULL;
 	}
 	if (IsActor(ent) && IsActor(touch)) {
 		if (IsDueling(ent, touch)
