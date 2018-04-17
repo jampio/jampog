@@ -75,6 +75,16 @@ static void login(client_t *cl) {
 	}
 }
 
+static void noduelevent(client_t *cl) {
+	if (cl->gentity->playerState->duelInProgress) {
+		console::writeln(cl, "^1Cannot toggle during duel^7");
+		return;
+	}
+	auto msg = cl->noduelevent ? "^1Disabled noduelevent^7" : "^2Enabled noduelevent^7";
+	cl->noduelevent = !cl->noduelevent;
+	console::writeln(cl, msg);
+}
+
 static void noduelinprogress(client_t *cl) {
 	auto msg = cl->noduelInProgress ? "^1Disabled noduelinprogress^7" : "^2Enabled noduelinprogress^7";
 	cl->noduelInProgress = !cl->noduelInProgress;
@@ -469,6 +479,7 @@ static Command cmds[] =
 	{ {"info", info, "show this"}
 	, {"players", players, "show a list of players"}
 	, {"login", login, "login to admin"}
+	, {"noduelevent", noduelevent, "(experimental) won't network duel events (prevents duel music)"}
 	, {"noduelinprogress", noduelinprogress, "(experimental) won't network duelInProgress (hides duel shell)"}
 	, {"nonsolid", nonsolid, "(experimental) smooths collision between dueling & nondueling players"}
 	, {"pmovefixed", pmovefixed, "(experimental) use pmove_fixed 1 on server and on your client"}
@@ -556,6 +567,9 @@ static void info(client_t *cl) {
 	}
 	if (cl->noduelInProgress) {
 		console::writeln(cl, "noduelinprogress: ^3%-8s^7", "ON");
+	}
+	if (cl->noduelevent) {
+		console::writeln(cl, "noduelevent:      ^3%-8s^7", "ON");
 	}
 	if (cl->admin.logged_in) {
 		console::writeln(cl, "cheats:           ^3%-8s^7", "ON");

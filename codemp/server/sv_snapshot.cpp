@@ -656,6 +656,12 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	if (client->noduelInProgress) {
 		frame->ps.duelInProgress = qfalse;
 	}
+
+	if (client->noduelevent
+	    && (frame->ps.externalEvent & ~EV_EVENT_BITS) == EV_PRIVATE_DUEL) {
+		// not sure if this is exactly correct
+		frame->ps.externalEvent &= ~EV_PRIVATE_DUEL;
+	}
 }
 
 

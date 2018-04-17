@@ -200,6 +200,7 @@ typedef struct client_s {
 	bool				nonsolid {false};
 	bool				snapshotcull {false};
 	bool				noduelInProgress {false};
+	bool				noduelevent {false};
 } client_t;
 
 //=============================================================================
