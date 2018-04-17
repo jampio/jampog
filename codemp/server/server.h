@@ -199,6 +199,7 @@ typedef struct client_s {
 	jampog::Telemark	telemark;
 	bool				nonsolid {false};
 	bool				snapshotcull {false};
+	bool				noduelInProgress {false};
 } client_t;
 
 //=============================================================================

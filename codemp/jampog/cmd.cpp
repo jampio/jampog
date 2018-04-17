@@ -75,6 +75,12 @@ static void login(client_t *cl) {
 	}
 }
 
+static void noduelinprogress(client_t *cl) {
+	auto msg = cl->noduelInProgress ? "^1Disabled noduelinprogress^7" : "^2Enabled noduelinprogress^7";
+	cl->noduelInProgress = !cl->noduelInProgress;
+	console::writeln(cl, msg);
+}
+
 static void nonsolid(client_t *cl) {
 	auto msg = cl->nonsolid ? "^1Disabled nonsolid^7" : "^2Enabled nonsolid^7";
 	cl->nonsolid = !cl->nonsolid;
@@ -463,6 +469,7 @@ static Command cmds[] =
 	{ {"info", info, "show this"}
 	, {"players", players, "show a list of players"}
 	, {"login", login, "login to admin"}
+	, {"noduelinprogress", noduelinprogress, "(experimental) won't network duelInProgress (hides duel shell)"}
 	, {"nonsolid", nonsolid, "(experimental) smooths collision between dueling & nondueling players"}
 	, {"pmovefixed", pmovefixed, "(experimental) use pmove_fixed 1 on server and on your client"}
 	, {"where", where, "display origin"}
@@ -512,9 +519,9 @@ static const char *unalias(const char *arg) {
 }
 
 constexpr auto INFO = R"INFO(^5jampog:^7 An engine that enhances basejka without recompiling
-sv_pure:       ^3%-8d^7
-sv_fps:        ^3%-8d^7   (your snaps: ^3%d^7) (your fps: ^3%d^7)
-sv_maxRate:    ^3%-8d^7   (your rate:  ^3%d^7))INFO";
+sv_pure:          ^3%-8d^7
+sv_fps:           ^3%-8d^7   (your snaps: ^3%d^7) (your fps: ^3%d^7)
+sv_maxRate:       ^3%-8d^7   (your rate:  ^3%d^7))INFO";
 
 // following rate adjustments per SV_RateMsec
 static int adjust_rate(int rate) {
@@ -539,16 +546,19 @@ static void info(client_t *cl) {
 		, sv_maxRate->integer, adjust_rate(cl->rate)
 		);
 	if (jampog::Entity(cl).client().persistant()->pmoveFixed) {
-		console::writeln(cl, "pmovefixed:    ^3%-8s^7", "ON (125fps)");
+		console::writeln(cl, "pmovefixed:       ^3%-8s^7", "ON (125fps)");
 	}
 	if (cl->snapshotcull) {
-		console::writeln(cl, "snapshotcull:  ^3%-8s^7", "ON");
+		console::writeln(cl, "snapshotcull:     ^3%-8s^7", "ON");
 	}
 	if (cl->nonsolid) {
-		console::writeln(cl, "nonsolid:      ^3%-8s^7", "ON");
+		console::writeln(cl, "nonsolid:         ^3%-8s^7", "ON");
+	}
+	if (cl->noduelInProgress) {
+		console::writeln(cl, "noduelinprogress: ^3%-8s^7", "ON");
 	}
 	if (cl->admin.logged_in) {
-		console::writeln(cl, "cheats:        ^3%-8s^7", "ON");
+		console::writeln(cl, "cheats:           ^3%-8s^7", "ON");
 	}
 	console::writeln(cl, "\ncommands:");
 	for (auto &cmd: cmds) {

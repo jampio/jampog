@@ -640,12 +640,21 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		if (client->nonsolid && DuelCull(client->gentity, ent)) {
 			state->solid = 0;
 		}
+		if (client->noduelInProgress
+		    && client->gentity->playerState->duelInProgress
+		    && (client->gentity->s.number == ent->s.number || client->gentity->playerState->duelIndex == ent->s.number)) {
+			state->bolt1 = 0;
+		}
 		svs.nextSnapshotEntities++;
 		// this should never hit, map should always be restarted first in SV_Frame
 		if ( svs.nextSnapshotEntities >= 0x7FFFFFFE ) {
 			Com_Error(ERR_FATAL, "svs.nextSnapshotEntities wrapped");
 		}
 		frame->num_entities++;
+	}
+
+	if (client->noduelInProgress) {
+		frame->ps.duelInProgress = qfalse;
 	}
 }
 
