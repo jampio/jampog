@@ -601,7 +601,7 @@ static void players(client_t *cl) {
 		if (it.state != CS_ACTIVE) continue;
 		const int offset = color_diff(it.name) + 36;
 		console::writeln(cl, va("%s%d%s", "%-2d %-", offset , "s^7 %-8d %-8d %-8d %-12d %-8d")
-			, it.gentity->s.number
+			, SV_NumForGentity(it.gentity)
 			, it.name
 			, adjust_rate(it.rate)
 			, 1000 / it.snapshotMsec

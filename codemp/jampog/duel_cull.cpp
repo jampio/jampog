@@ -22,7 +22,7 @@ static sharedEntity_t *flatten(sharedEntity_t *ent) {
 }
 
 static playerState_t *GetPS(sharedEntity_t *ent) {
-	return SV_GameClientNum(ent->s.number);
+	return SV_GameClientNum(SV_NumForGentity(ent));
 }
 
 static bool IsPlayer(sharedEntity_t *ent) {
@@ -50,12 +50,12 @@ static bool IsDueling(sharedEntity_t *A, sharedEntity_t *B) {
 	auto a = flatten(A);
 	auto b = flatten(B);
 	// checking for owned event entities
-	if (a == b || a->s.number == b->s.number) {
+	if (a == b || SV_NumForGentity(a) == SV_NumForGentity(b)) {
 		return true;
 	}
 	return GetPS(a)
 	       && GetPS(a)->duelInProgress
-	       && GetPS(a)->duelIndex == b->s.number;
+	       && GetPS(a)->duelIndex == SV_NumForGentity(b);
 }
 
 bool DuelCull(sharedEntity_t *ent, sharedEntity_t *touch) {

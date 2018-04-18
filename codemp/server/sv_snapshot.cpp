@@ -642,7 +642,8 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		}
 		if (client->noduelInProgress
 		    && client->gentity->playerState->duelInProgress
-		    && (client->gentity->s.number == ent->s.number || client->gentity->playerState->duelIndex == ent->s.number)) {
+		    && (SV_NumForGentity(client->gentity) == SV_NumForGentity(ent)
+		        || client->gentity->playerState->duelIndex == SV_NumForGentity(ent))) {
 			state->bolt1 = 0;
 		}
 		svs.nextSnapshotEntities++;
