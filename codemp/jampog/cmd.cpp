@@ -644,4 +644,7 @@ bool jampog::command(client_t *cl) {
 
 void jampog::command_init() {
 	admin_password = Cvar_Get("admin_password", "", 0);
+	Cvar_Get("sv_enableDuelCull", "1", 0);
+	Cvar_Get("sv_debugCMCull", "0", 0);
+	Cvar_Get("sv_debugSnapshotCull", "0", 0);
 }

@@ -613,6 +613,9 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 		}
 
 		if (DuelCull(SV_GentityNum(clip->passEntityNum), touch)) {
+			if (Cvar_VariableIntegerValue("sv_debugCMCull")) {
+				SV_SendServerCommand(svs.clients + clip->passEntityNum, va("print \"CMCull ent: %d\"\n", SV_NumForGentity(touch)));
+			}
 			continue;
 		}
 

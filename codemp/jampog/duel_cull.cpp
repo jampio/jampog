@@ -1,30 +1,5 @@
 #include "duel_cull.h"
 
-static bool valid_number(int number) {
-	return number >= 0
-	       && number < ENTITYNUM_NONE;
-}
-
-// Attempts to flatten entities to their owners
-// Event entities can use clientNum, otherEntityNum, or otherEnttiyNum2
-static sharedEntity_t *flatten(sharedEntity_t *ent) {
-	if (valid_number(ent->s.clientNum)) {
-		return SV_GentityNum(ent->s.clientNum);
-	} else if (valid_number(ent->s.otherEntityNum)) {
-		return SV_GentityNum(ent->s.otherEntityNum);
-	} else if (valid_number(ent->s.otherEntityNum2)) {
-		return SV_GentityNum(ent->s.otherEntityNum2);
-	} else if (valid_number(ent->r.ownerNum)) {
-		return SV_GentityNum(ent->r.ownerNum);
-	} else {
-		return ent;
-	}
-}
-
-static playerState_t *GetPS(sharedEntity_t *ent) {
-	return SV_GameClientNum(SV_NumForGentity(ent));
-}
-
 static bool IsPlayer(sharedEntity_t *ent) {
 	return ent->s.eType == ET_PLAYER;
 }
@@ -37,13 +12,34 @@ static bool IsMover(sharedEntity_t *ent) {
 	return ent->s.eType == ET_MOVER;
 }
 
+static sharedEntity_t *valid_ent(int number) {
+	if (number < 0 || number >= ENTITYNUM_WORLD) return nullptr;
+	auto ent = SV_GentityNum(number);
+	if (IsMover(ent)) return nullptr;
+	return ent;
+}
+
+// Attempts to flatten entities to their owners
+// Event entities can use clientNum, otherEntityNum, or otherEnttiyNum2
+static sharedEntity_t *flatten(sharedEntity_t *ent) {
+	if (IsMover(ent) || IsPlayer(ent) || IsNPC(ent)) return ent;
+	else if (auto e = valid_ent(ent->s.clientNum); e) return e;
+	else if (auto e = valid_ent(ent->s.otherEntityNum); e) return e;
+	else if (auto e = valid_ent(ent->s.otherEntityNum2); e) return e;
+	else if (auto e = valid_ent(ent->r.ownerNum); e) return e;
+	else return ent;
+}
+
+static playerState_t *GetPS(sharedEntity_t *ent) {
+	return SV_GameClientNum(SV_NumForGentity(ent));
+}
+
 static bool IsDueling(sharedEntity_t *ent) {
 	return IsPlayer(flatten(ent)) && GetPS(flatten(ent))->duelInProgress;
 }
 
 static bool IsActor(sharedEntity_t *ent) {
-	// movers are not safe to flatten
-	return !IsMover(ent) && (IsPlayer(flatten(ent)) || IsNPC(flatten(ent)));
+	return IsPlayer(flatten(ent)) || IsNPC(flatten(ent));
 }
 
 static bool IsDueling(sharedEntity_t *A, sharedEntity_t *B) {
@@ -61,9 +57,10 @@ static bool IsDueling(sharedEntity_t *A, sharedEntity_t *B) {
 bool DuelCull(sharedEntity_t *ent, sharedEntity_t *touch) {
 	constexpr auto CULL = true;
 	constexpr auto NO_CULL = !CULL;
-	if (Cvar_VariableIntegerValue("g_gametype") != 0) {
-		return NO_CULL;
-	}
+
+	if (!Cvar_VariableIntegerValue("sv_enableDuelCull")) return NO_CULL;
+	if (Cvar_VariableIntegerValue("g_gametype") != 0) return NO_CULL;
+
 	if (IsActor(ent) && IsActor(touch)) {
 		if (IsDueling(ent, touch)
 		    || (!IsDueling(ent) && !IsDueling(touch))) {
@@ -71,5 +68,6 @@ bool DuelCull(sharedEntity_t *ent, sharedEntity_t *touch) {
 		}
 		return CULL;
 	}
+
 	return NO_CULL;
 }
