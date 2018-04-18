@@ -208,6 +208,8 @@ int SV_BotAllocateClient(void) {
 	cl->netchan.remoteAddress.type = NA_BOT;
 	cl->rate = 16384;
 
+	cl->defaults();
+
 	// cannot start recording auto demos here since bot's name is not set yet
 	return i;
 }
