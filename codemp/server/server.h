@@ -197,10 +197,22 @@ typedef struct client_s {
 	jampog::Admin		admin;
 	jampog::ClientFPS	clientFPS;
 	jampog::Telemark	telemark;
-	bool				nonsolid {false};
-	bool				snapshotcull {false};
-	bool				noduelInProgress {false};
-	bool				noduelevent {false};
+	bool				nonsolid;
+	bool				noduelInProgress;
+	bool				noduelevent;
+	bool				drawduelers;
+	bool				drawothers;
+
+	void defaults() {
+		admin = jampog::Admin{};
+		clientFPS = jampog::ClientFPS{};
+		telemark = jampog::Telemark{};
+		nonsolid = true;
+		noduelInProgress = true;
+		noduelevent = false;
+		drawduelers = true;
+		drawothers = false;
+	}
 } client_t;
 
 //=============================================================================

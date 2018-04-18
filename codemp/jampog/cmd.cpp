@@ -62,6 +62,18 @@ qboolean cheats_okay(void *ptr) {
 	}
 }
 
+static void drawduelers(client_t *cl) {
+	auto msg = cl->drawduelers ? "^1Disabled drawduelers^7" : "^2Enabled drawduelers^7";
+	cl->drawduelers = !cl->drawduelers;
+	console::writeln(cl, msg);
+}
+
+static void drawothers(client_t *cl) {
+	auto msg = cl->drawothers ? "^1Disabled drawothers^7" : "^2Enabled drawothers^7";
+	cl->drawothers = !cl->drawothers;
+	console::writeln(cl, msg);
+}
+
 static void login(client_t *cl) {
 	if (cl->admin.logged_in) {
 		console::writeln(cl, "You are logged in.");
@@ -121,12 +133,6 @@ static void where(client_t *cl) {
 	}
 	auto orig = ent.origin();
 	console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
-}
-
-static void snapshot_cull(client_t *cl) {
-	auto msg = cl->snapshotcull ? "^1Disabled snapshot culling^7" : "^2Enabled snapshot culling^7";
-	cl->snapshotcull = !cl->snapshotcull;
-	console::writeln(cl, msg);
 }
 
 static void amaddbot(client_t *cl) {
@@ -479,12 +485,13 @@ static Command cmds[] =
 	{ {"info", info, "show this"}
 	, {"players", players, "show a list of players"}
 	, {"login", login, "login to admin"}
+	, {"drawduelers", drawduelers, "draw dueling players"}
+	, {"drawothers", drawothers, "show other plays while dueling"}
 	, {"noduelevent", noduelevent, "(experimental) won't network duel events (prevents duel music)"}
 	, {"noduelinprogress", noduelinprogress, "(experimental) won't network duelInProgress (hides duel shell)"}
 	, {"nonsolid", nonsolid, "(experimental) smooths collision between dueling & nondueling players"}
 	, {"pmovefixed", pmovefixed, "(experimental) use pmove_fixed 1 on server and on your client"}
 	, {"where", where, "display origin"}
-	, {"snapshotcull", snapshot_cull, "(experimental) hide other players while dueling and vice versa"}
 	};
 
 static Command admin_cmds[] = 
@@ -559,8 +566,11 @@ static void info(client_t *cl) {
 	if (jampog::Entity(cl).client().persistant()->pmoveFixed) {
 		console::writeln(cl, "pmovefixed:       ^3%-8s^7", "ON (125fps)");
 	}
-	if (cl->snapshotcull) {
-		console::writeln(cl, "snapshotcull:     ^3%-8s^7", "ON");
+	if (cl->drawduelers) {
+		console::writeln(cl, "drawduelers:      ^3%-8s^7", "ON");
+	}
+	if (cl->drawothers) {
+		console::writeln(cl, "drawothers:       ^3%-8s^7", "ON");
 	}
 	if (cl->nonsolid) {
 		console::writeln(cl, "nonsolid:         ^3%-8s^7", "ON");
