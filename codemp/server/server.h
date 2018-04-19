@@ -31,6 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jampog/cmd.h"
 #include "jampog/ClientFPS.h"
 #include "jampog/Telemark.h"
+#include "jampog/Stats.h"
 
 //=============================================================================
 
@@ -197,6 +198,7 @@ typedef struct client_s {
 	jampog::Admin		admin;
 	jampog::ClientFPS	clientFPS;
 	jampog::Telemark	telemark;
+	jampog::Stats		stats;
 	bool				nonsolid;
 	bool				noduelInProgress;
 	bool				noduelevent;
@@ -207,6 +209,7 @@ typedef struct client_s {
 		admin = jampog::Admin{};
 		clientFPS = jampog::ClientFPS{};
 		telemark = jampog::Telemark{};
+		stats = jampog::Stats(this);
 		nonsolid = true;
 		noduelInProgress = true;
 		noduelevent = false;

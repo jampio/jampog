@@ -670,6 +670,8 @@ if(BuildMPDed)
 		"${MPDir}/jampog/init.cpp"
 		"${MPDir}/jampog/init.h"
 		"${MPDir}/jampog/offsets.h"
+		"${MPDir}/jampog/Stats.h"
+		"${MPDir}/jampog/Stats.cpp"
 		"${MPDir}/jampog/Telemark.h"
 	)
 	source_group("jampog" FILES ${MPJampogFiles})

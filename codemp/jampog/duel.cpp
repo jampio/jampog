@@ -74,6 +74,7 @@ static void DuelActive(void *ent) {
 			G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
 #endif
 			client_ps(ent_client(ent))->duelTime = 0;
+			svs.clients[SV_NumForGentity((sharedEntity_t*)ent)].stats.start_hits();
 			// TODO: add begin sound
 			// trap_SendServerCommand(client_num(g_base, ent), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
 			// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
@@ -88,6 +89,7 @@ static void DuelActive(void *ent) {
 			G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 2);
 #endif
 			client_ps(ent_client(duelAgainst))->duelTime = 0;
+			svs.clients[SV_NumForGentity((sharedEntity_t*)duelAgainst)].stats.start_hits();
 			// trap_SendServerCommand(client_num(g_base, duelAgainst), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
 			// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
 		}
@@ -122,12 +124,13 @@ static void DuelActive(void *ent) {
 		if (ent_health(ent) > 0
 		    && client_ps(ent_client(ent))->stats[STAT_HEALTH] > 0) {
 
-			trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> (^1%d^7/^2%d^7) remaining\n\"",
+			trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> ^5HP:^7 (^1%d^7/^2%d^7), ^5hits: ^3%d^7\n\"",
 				client_pers(ent_client(ent))->netname,
 				G_GetStringEdString("MP_SVGAME", "PLDUELWINNER"),
 				client_pers(ent_client(duelAgainst))->netname,
 				client_ps(ent_client(ent))->stats[STAT_HEALTH],
-				client_ps(ent_client(ent))->stats[STAT_ARMOR]
+				client_ps(ent_client(ent))->stats[STAT_ARMOR],
+				svs.clients[SV_NumForGentity((sharedEntity_t*)ent)].stats.hits()
 			));
 
 			const int new_health = client_ps(ent_client(ent))->stats[STAT_MAX_HEALTH];
