@@ -13,6 +13,7 @@ private:
 	static constexpr auto PERS_OFS = 1552;
 	static constexpr auto GCLIENT_OFS = 0x00695D00;
 	static constexpr size_t SIZE = 7284;
+	static constexpr auto INVULNERABLE_TIMER_OFS = 6328;
 	uintptr_t base;
 public:
 	Client() = delete;
@@ -48,6 +49,9 @@ public:
 	}
 	const char *name() {
 		return persistant()->netname;
+	}
+	void set_invulnerable_timer(int value) {
+		*(int*)(base + INVULNERABLE_TIMER_OFS) = value;
 	}
 };
 }

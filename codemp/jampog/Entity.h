@@ -11,6 +11,7 @@ private:
 	static constexpr size_t SIZE = 1516;
 	static constexpr auto GENTITY_OFS = 0x006CE620;
 	static constexpr auto INUSE_OFS = 880;
+	static constexpr auto LOCALANIMINDEX_OFS = 0x220;
 	uintptr_t base;
 public:
 	Entity() = delete;
@@ -98,6 +99,9 @@ public:
 		} else {
 			return r().currentOrigin;
 		}
+	}
+	int local_anim_index() const {
+		return *(int*)(base + LOCALANIMINDEX_OFS);
 	}
 };
 }
