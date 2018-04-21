@@ -427,7 +427,7 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			}
 		}
 
-		bool culled = DuelCull(ent, SV_GentityNum(frame->ps.clientNum));
+		bool culled = DuelCull(SV_GentityNum(frame->ps.clientNum), ent);
 		if ((frame->ps.duelInProgress == qfalse && !client->drawduelers && culled)
 		    || (frame->ps.duelInProgress == qtrue && !client->drawothers && culled)) {
 			if (Cvar_VariableIntegerValue("sv_debugSnapshotCull")) {
@@ -649,6 +649,13 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		    && (SV_NumForGentity(client->gentity) == SV_NumForGentity(ent)
 		        || client->gentity->playerState->duelIndex == SV_NumForGentity(ent))) {
 			state->bolt1 = 0;
+		}
+		// network these fields as 0
+		if (state->otherEntityNum2 == MAX_GENTITIES) {//would break all missiles
+			state->otherEntityNum2 = 0;
+		}
+		if (state->trickedentindex == MAX_GENTITIES) {//breaks TDs
+			state->trickedentindex = 0;
 		}
 		svs.nextSnapshotEntities++;
 		// this should never hit, map should always be restarted first in SV_Frame

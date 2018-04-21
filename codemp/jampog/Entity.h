@@ -12,6 +12,7 @@ private:
 	static constexpr auto GENTITY_OFS = 0x006CE620;
 	static constexpr auto INUSE_OFS = 880;
 	static constexpr auto LOCALANIMINDEX_OFS = 0x220;
+	static constexpr auto PARENT_OFS = 0x40C;
 	uintptr_t base;
 public:
 	Entity() = delete;
@@ -56,8 +57,14 @@ public:
 	sharedEntity_t *gent_ptr() const {
 		return (sharedEntity_t*)base;
 	}
+	int number() const {
+		return SV_NumForGentity(gent_ptr());
+	}
 	bool inuse() const {
 		return *(qboolean*)(base + INUSE_OFS) == qtrue;
+	}
+	void set_inuse(bool value) {
+		*(qboolean*)(base + INUSE_OFS) = value ? qtrue : qfalse;
 	}
 	// returns false if player is spectating
 	bool is_player() const {
@@ -94,7 +101,7 @@ public:
 		teleport(x, y, z);
 	}
 	vec3_t& origin() const {
-		if (s().number >= 0 && s().number < MAX_CLIENTS) {
+		if (0 <= number() && number() < MAX_CLIENTS) {
 			return ps().origin;
 		} else {
 			return r().currentOrigin;
@@ -102,6 +109,15 @@ public:
 	}
 	int local_anim_index() const {
 		return *(int*)(base + LOCALANIMINDEX_OFS);
+	}
+	sharedEntity_t *parent_ptr() const {
+		return *(sharedEntity_t**)(base + PARENT_OFS);
+	}
+	Entity parent() const {
+		return parent_ptr();
+	}
+	void set_parent(sharedEntity_t *ent) {
+		*(sharedEntity_t**)(base + PARENT_OFS) = ent;
 	}
 };
 }
