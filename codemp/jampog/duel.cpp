@@ -119,7 +119,6 @@ static void begin_duel_event(sharedEntity_t *ent) {
 }
 
 static void print_winner_msg(sharedEntity_t *ent, sharedEntity_t *duelAgainst) {
-	trap_SendServerCommand(-1, va("print \"%d\n\"", svs.clients[SV_NumForGentity(ent)].stats.shots()));
 	trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> ^5HP:^7 (^1%d^7/^2%d^7), ^5accuracy: ^3%d^7\n\"",
 		jampog::Entity(ent).client().name(),
 		G_GetStringEdString("MP_SVGAME", "PLDUELWINNER"),
