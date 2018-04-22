@@ -75,7 +75,7 @@ static void check_begin_duel(sharedEntity_t *ent) {
 	G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
 #endif
 	ent->playerState->duelTime = 0;
-	svs.clients[SV_NumForGentity(ent)].stats.start_hits();
+	svs.clients[SV_NumForGentity(ent)].stats.start();
 	// TODO: add begin sound
 	// trap_SendServerCommand(client_num(g_base, ent), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
 	// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
@@ -119,13 +119,14 @@ static void begin_duel_event(sharedEntity_t *ent) {
 }
 
 static void print_winner_msg(sharedEntity_t *ent, sharedEntity_t *duelAgainst) {
-	trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> ^5HP:^7 (^1%d^7/^2%d^7), ^5hits: ^3%d^7\n\"",
+	trap_SendServerCommand(-1, va("print \"%d\n\"", svs.clients[SV_NumForGentity(ent)].stats.shots()));
+	trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> ^5HP:^7 (^1%d^7/^2%d^7), ^5accuracy: ^3%d^7\n\"",
 		jampog::Entity(ent).client().name(),
 		G_GetStringEdString("MP_SVGAME", "PLDUELWINNER"),
 		jampog::Entity(duelAgainst).client().name(),
 		ent->playerState->stats[STAT_HEALTH],
 		ent->playerState->stats[STAT_ARMOR],
-		svs.clients[SV_NumForGentity(ent)].stats.hits()
+		svs.clients[SV_NumForGentity(ent)].stats.accuracy()
 	));
 }
 
@@ -144,6 +145,10 @@ static void reset_health(sharedEntity_t *ent) {
 }
 
 static void DuelActive(sharedEntity_t *ent) {
+	if (ent->s.eType != ET_PLAYER) return;
+
+	svs.clients[SV_NumForGentity(ent)].stats.check_hits();
+
 	if (!ent->playerState->duelInProgress) return;
 
 	sharedEntity_t *duelAgainst = SV_GentityNum(ent->playerState->duelIndex);

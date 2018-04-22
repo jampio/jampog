@@ -14,6 +14,8 @@ private:
 	static constexpr auto GCLIENT_OFS = 0x00695D00;
 	static constexpr size_t SIZE = 7284;
 	static constexpr auto INVULNERABLE_TIMER_OFS = 6328;
+	static constexpr auto ACCURACY_SHOTS_OFS = 0x18F8;
+	static constexpr auto ACCURACY_HITS_OFS = 0x18FC;
 	uintptr_t base;
 public:
 	Client() = delete;
@@ -52,6 +54,15 @@ public:
 	}
 	void set_invulnerable_timer(int value) {
 		*(int*)(base + INVULNERABLE_TIMER_OFS) = value;
+	}
+	int accuracy_shots() const {
+		return *(int*)(base + ACCURACY_SHOTS_OFS);
+	}
+	void set_accuracy_shots(int value) {
+		*(int*)(base + ACCURACY_SHOTS_OFS) = value;
+	}
+	int accuracy_hits() const {
+		return *(int*)(base + ACCURACY_HITS_OFS);
 	}
 };
 }

@@ -427,6 +427,11 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			}
 		}
 
+		if (ent->s.eType == ET_EVENTS + EV_SABER_BLOCK
+		    && ent->s.otherEntityNum2 == frame->ps.clientNum) {
+			svs.clients[frame->ps.clientNum].stats.add_hit();
+		}
+
 		bool culled = DuelCull(SV_GentityNum(frame->ps.clientNum), ent);
 		if ((frame->ps.duelInProgress == qfalse && !client->drawduelers && culled)
 		    || (frame->ps.duelInProgress == qtrue && !client->drawothers && culled)) {
