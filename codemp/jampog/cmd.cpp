@@ -8,6 +8,11 @@
 #include "offsets.h"
 #include "base.h"
 #include "structs/GClient.h"
+#include "util.h"
+
+namespace console = jampog::console;
+namespace str = jampog::str;
+using jampog::color_diff;
 
 cvar_t *Cvar_FindVar(const char *var_name);
 const char *SV_GetStringEdString(char *refSection, char *refName);
@@ -15,33 +20,6 @@ qboolean SV_DelBanEntryFromList(int index);
 void SV_WriteBans(void);
 void SV_SendConfigstring(client_t *client, int index);
 static cvar_t *admin_password = nullptr;
-
-namespace console {
-	template <typename... Args>
-	static void writeln(client_t *cl, const char *fmt, Args... args) {
-		char buffer[2048] = {0};
-		char format[2048] = {0};
-		Com_sprintf(format, sizeof(format), fmt, args...);
-		Q_strcat(buffer, sizeof(buffer), "print \"");
-		Q_strcat(buffer, sizeof(buffer), format);
-		Q_strcat(buffer, sizeof(buffer), "\n\"");
-		SV_SendServerCommand(cl, buffer);
-	}
-	template <typename... Args>
-	static void exec(const char *fmt, Args... args) {
-		char buffer[1024] = {0};
-		Com_sprintf(buffer, sizeof(buffer) - 2, fmt, args...);
-		Q_strcat(buffer, sizeof(buffer), "\n");
-		Cbuf_ExecuteText(EXEC_APPEND, buffer);
-	}
-}
-
-namespace str {
-	template <size_t N>
-	static void cpy(char (&buffer)[N], const char *src) {
-		Q_strncpyz(buffer, src, N);
-	}
-}
 
 static client_t *client_from_ent(void *ptr) {
 	for (auto i = 0; i < sv_maxclients->integer; i++) {
@@ -594,14 +572,6 @@ static void info(client_t *cl) {
 			console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
 		}
 	}
-}
-
-template <size_t N>
-static int color_diff(const char (&buf)[N]) {
-	char nocolor[N];
-	Q_strncpyz(nocolor, buf, N);
-	Q_StripColor(nocolor);
-	return strlen(buf) - strlen(nocolor);
 }
 
 static void players(client_t *cl) {

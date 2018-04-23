@@ -8,6 +8,11 @@
 #include "offsets.h"
 #include "icarus/GameInterface.h"
 #include "duel_cull.h"
+#include "util.h"
+#include "damage.h"
+
+namespace console = jampog::console;
+using jampog::color_diff;
 
 qboolean cheats_okay(void *ptr);
 
@@ -15,15 +20,22 @@ constexpr auto G_SOUNDTEMPENTITY_OFS = 0x0016E224;
 constexpr auto G_MUTESOUND_OFS = 0x0016E7A4;
 constexpr auto G_FREEENTITY_OFS = 0x0016DE44;
 constexpr auto PMOVE_OFS = 0x00946464;
-constexpr auto G_LOGWEAPONDAMAGE_OFS = 0x001413C4;
+constexpr auto MOVECLIENTTOINTERMISSION_OFS = 0x00087A14;
+constexpr auto STOPFOLLOWING_OFS = 0x0012B354;
+constexpr auto LEVEL_OFS = 0x0068A3A0;
+constexpr auto INTERMISSION_ORIGIN_OFS = 0x234C;
+constexpr auto INTERMISSION_ANGLE_OFS = 0x2358;
+constexpr auto TEAMSCORES_OFS = 0x2C;
 
 static sharedEntity_t *(*G_SoundTempEntity)(vec3_t origin, int event, int channel) = nullptr;
 static void (*G_MuteSound)(int, int) = nullptr;
 static void (*G_FreeEntity)(sharedEntity_t*) = nullptr;
 static void (*_BG_AddPredictableEventToPlayerstate)(int, int, playerState_t*) = nullptr;
 static pmove_t **BG_PM = nullptr;
-int (*G_WeaponLogDamage)[MAX_CLIENTS][MOD_MAX] = nullptr;
-qboolean (*G_WeaponLogClientTouch)[MAX_CLIENTS] = nullptr;
+static void (*StopFollowing)(sharedEntity_t*) = nullptr;
+static vec3_t *level_intermission_origin = nullptr;
+static vec3_t *level_intermission_angle = nullptr;
+static int (*level_teamScores)[TEAM_NUM_TEAMS] = nullptr;
 
 static void G_InitGentity(sharedEntity_t *ent) {
 	jampog::Entity(ent).set_inuse(true);
@@ -71,17 +83,86 @@ static void G_Sound(sharedEntity_t *ent, int channel, int soundIndex) {
 	}
 }
 
-#if 0
-static void patch_fire_weapon(const uintptr_t base) {
-	using jampog::patch_byte;
-	// effectively allows accuracy_shots for any weapons
-	// will give it dummy values for it to fail to
-	unsigned char dummy = -10;//0x99;
-	patch_byte((unsigned char*)(base + 0x0017E164), dummy);
-	patch_byte((unsigned char*)(base + 0x0017E169), dummy);
-	patch_byte((unsigned char*)(base + 0x0017E16E), dummy);
+static void print_stats_team(client_t *this_cl, int team) {
+	if (team == TEAM_BLUE) {
+		console::writeln(this_cl, "team ^4BLUE^7");
+	} else if (team == TEAM_RED) {
+		console::writeln(this_cl, "team ^1RED^7");
+	}
+	console::writeln(this_cl, "^3%-36s %-10s %-10s %-8s %-8s^7", "name", "damage", "accuracy", "kills", "deaths");
+	for (auto i = 0; i < sv_maxclients->integer; i++) {
+		auto cl = svs.clients + i;
+		jampog::Entity e(cl);
+		if (cl->state != CS_ACTIVE) continue;
+		if (e.client().team() == team) {
+			console::writeln(this_cl,
+				va("%s%d%s", "%-", color_diff(e.client().name()) + 36, "s^7 %-10d %-10d %-8d %-8d"),
+				e.client().name(),
+				cl->stats.damage(),
+				cl->stats.accuracy(),
+				cl->stats.kills(),
+				cl->stats.deaths()
+			);
+		}
+	}
 }
-#endif
+
+static void print_stats(sharedEntity_t *ent) {
+	if (Cvar_VariableIntegerValue("g_gametype") != GT_TEAM) return;
+	auto this_cl = svs.clients + SV_NumForGentity(ent);
+	console::writeln(this_cl, "^5** stats **^7");
+	if ((*level_teamScores)[TEAM_BLUE] > (*level_teamScores)[TEAM_RED]) {
+		console::writeln(this_cl, "^4BLUE^7 wins!\n");
+		print_stats_team(this_cl, TEAM_BLUE);
+		console::writeln(this_cl, "");
+		print_stats_team(this_cl, TEAM_RED);
+	} else if ((*level_teamScores)[TEAM_RED] > (*level_teamScores)[TEAM_BLUE]) {
+		console::writeln(this_cl, "^1RED^7 wins!\n");
+		print_stats_team(this_cl, TEAM_RED);
+		console::writeln(this_cl, "");
+		print_stats_team(this_cl, TEAM_BLUE);
+	} else {
+		console::writeln(this_cl, "teams are ^2TIED^7");
+		print_stats_team(this_cl, TEAM_RED);
+		console::writeln(this_cl, "");
+		print_stats_team(this_cl, TEAM_BLUE);
+	}
+	console::writeln(this_cl, "");
+}
+
+static void MoveClientToIntermission(sharedEntity_t *ent) {
+	auto cl = jampog::Entity(ent).client();
+
+	// take out of follow mode if needed
+	if (cl.spectator_state() == 2/*SPECTATOR_FOLLOW*/) {
+		StopFollowing(ent);
+	}
+
+	// move to the spot
+	VectorCopy(*level_intermission_origin, ent->s.origin);
+	VectorCopy(*level_intermission_origin, ent->playerState->origin);
+	VectorCopy(*level_intermission_angle, ent->playerState->viewangles);
+	ent->playerState->pm_type = PM_INTERMISSION;
+
+	// clean up powerup info
+	memset(ent->playerState->powerups, 0, sizeof(ent->playerState->powerups));
+
+	ent->playerState->rocketLockIndex = ENTITYNUM_NONE;
+	ent->playerState->rocketLockTime = 0;
+
+	ent->playerState->eFlags = 0;
+	ent->s.eFlags = 0;
+	ent->playerState->eFlags2 = 0;
+	ent->s.eFlags2 = 0;
+	ent->s.eType = ET_GENERAL;
+	ent->s.modelindex = 0;
+	ent->s.loopSound = 0;
+	ent->s.loopIsSoundset = qfalse;
+	ent->s.event = 0;
+	ent->r.contents = 0;
+
+	print_stats(ent);
+}
 
 static void PM_AddEvent(int newEvent) {
 	auto ps = (*BG_PM)->ps;
@@ -90,22 +171,6 @@ static void PM_AddEvent(int newEvent) {
 	}
 	_BG_AddPredictableEventToPlayerstate(newEvent, 0, ps);
 }
-
-// This currently will not catch SHIELD_HITS
-// for that I added an extra check "check_hits()"
-// which is called during client think
-// which checks changes in PERS_HITS
-#if 0
-static void G_LogWeaponDamage(int client, int mod, int amount) {
-	if (client >= MAX_CLIENTS) return;
-	(*G_WeaponLogDamage)[client][mod] += amount;
-	(*G_WeaponLogClientTouch)[client] = qtrue;
-
-	if (mod == MOD_SABER) {
-		svs.clients[client].stats.add_hit();
-	}
-}
-#endif
 
 namespace jampog {
 	void init(const vm_t * const vm) {
@@ -138,17 +203,16 @@ namespace jampog {
 		G_MuteSound = (decltype(G_MuteSound))(base + G_MUTESOUND_OFS);
 		G_FreeEntity = (decltype(G_FreeEntity))(base + G_FREEENTITY_OFS);
 		detour((void*)(base + 0x0016E824), (void*)G_Sound);
-		//Com_Printf("patching FireWeapon\n");
-		//patch_fire_weapon(base);
 		Com_Printf("patching PM_AddEvent\n");
 		detour((void*)(base + 0x00101A34), (void*)PM_AddEvent);
 		_BG_AddPredictableEventToPlayerstate = (decltype(_BG_AddPredictableEventToPlayerstate))(base + 0x000EBBE4);
 		BG_PM = (decltype(BG_PM))(base + PMOVE_OFS);
-		#if 0
-		Com_Printf("patching G_LogWeaponDamage\n");
-		detour((void*)(base + G_LOGWEAPONDAMAGE_OFS), (void*)G_LogWeaponDamage);
-		G_WeaponLogDamage = (decltype(G_WeaponLogDamage))(base + 0x0099B640);
-		G_WeaponLogClientTouch = (decltype(G_WeaponLogClientTouch))(base + 0x0099CBC0);
-		#endif
+		Com_Printf("patching MoveClientToIntermission\n");
+		detour((void*)(base + MOVECLIENTTOINTERMISSION_OFS), (void*)MoveClientToIntermission);
+		StopFollowing = (decltype(StopFollowing))(base + STOPFOLLOWING_OFS);
+		level_intermission_angle = (decltype(level_intermission_angle))(base + LEVEL_OFS + INTERMISSION_ANGLE_OFS);
+		level_intermission_origin = (decltype(level_intermission_origin))(base + LEVEL_OFS + INTERMISSION_ORIGIN_OFS);
+		level_teamScores = (decltype(level_teamScores))(base + LEVEL_OFS + TEAMSCORES_OFS);
+		patch_damage_hooks(base);
 	}
 }

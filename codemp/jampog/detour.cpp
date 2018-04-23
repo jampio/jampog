@@ -45,6 +45,13 @@ void detour(void * const before, const void * const after) {
 		(uint32_t)((unsigned char*)after - ((unsigned char*)before + 5));
 }
 
+void detour_call(void * const before, const void * const after) {
+	protect(before, 5);
+	*(unsigned char*)before = 0xE8;
+	*(uint32_t*)((unsigned char*)before+1) =
+		(uint32_t)((unsigned char*)after - ((unsigned char*)before + 5));
+}
+
 void patch_byte(unsigned char *byte, unsigned char value) {
 	protect(byte, 1);
 	*byte = value;
@@ -58,6 +65,10 @@ void patch_word(unsigned int *word, unsigned int value) {
 void patch_str(void *dest, const char *str) {
 	protect(dest, strlen(str));
 	memcpy(dest, str, strlen(str));
+}
+
+uintptr_t calc_jmp(uintptr_t from, uintptr_t to) {
+	return to - (from + 5);
 }
 
 }

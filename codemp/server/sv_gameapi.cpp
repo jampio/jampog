@@ -73,11 +73,11 @@ char *GVM_ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 void GVM_ClientBegin( int clientNum ) {
 	if ( gvm->isLegacy ) {
 		VM_Call( gvm, GAME_CLIENT_BEGIN, clientNum );
-		return;
+	} else {
+		VMSwap v( gvm );
+		ge->ClientBegin( clientNum, qtrue );
 	}
-	VMSwap v( gvm );
-
-	ge->ClientBegin( clientNum, qtrue );
+	svs.clients[clientNum].stats.start();
 }
 
 qboolean GVM_ClientUserinfoChanged( int clientNum ) {

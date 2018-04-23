@@ -16,6 +16,8 @@ private:
 	static constexpr auto INVULNERABLE_TIMER_OFS = 6328;
 	static constexpr auto ACCURACY_SHOTS_OFS = 0x18F8;
 	static constexpr auto ACCURACY_HITS_OFS = 0x18FC;
+	static constexpr auto SPECTATOR_STATE_OFS = 0x6B4;
+	static constexpr auto SESSION_TEAM_OFS = 0x6AC;
 	uintptr_t base;
 public:
 	Client() = delete;
@@ -49,7 +51,7 @@ public:
 	void set_noclip(bool value) {
 		*(qboolean*)(base + NOCLIP_OFS) = (value ? qtrue : qfalse);
 	}
-	const char *name() {
+	char (&name())[MAX_NETNAME] {
 		return persistant()->netname;
 	}
 	void set_invulnerable_timer(int value) {
@@ -63,6 +65,12 @@ public:
 	}
 	int accuracy_hits() const {
 		return *(int*)(base + ACCURACY_HITS_OFS);
+	}
+	int spectator_state() const {
+		return *(int*)(base + SPECTATOR_STATE_OFS);
+	}
+	int team() const {
+		return *(int*)(base + SESSION_TEAM_OFS);
 	}
 };
 }

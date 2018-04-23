@@ -655,6 +655,8 @@ if(BuildMPDed)
 		"${MPDir}/jampog/clientname.h"
 		"${MPDir}/jampog/cmd.cpp"
 		"${MPDir}/jampog/cmd.h"
+		"${MPDir}/jampog/damage.h"
+		"${MPDir}/jampog/damage.cpp"
 		"${MPDir}/jampog/detour.cpp"
 		"${MPDir}/jampog/detour.h"
 		"${MPDir}/jampog/duel_cull.cpp"
@@ -673,6 +675,7 @@ if(BuildMPDed)
 		"${MPDir}/jampog/Stats.h"
 		"${MPDir}/jampog/Stats.cpp"
 		"${MPDir}/jampog/Telemark.h"
+		"${MPDir}/jampog/util.h"
 	)
 	source_group("jampog" FILES ${MPJampogFiles})
 	set(MPDedFiles ${MPDedFiles} ${MPJampogFiles})

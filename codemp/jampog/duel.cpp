@@ -1,5 +1,5 @@
 #include "detour.h"
-#include "server/server.h"
+#include <server/server.h>
 #include "offsets.h"
 #include "Entity.h"
 
