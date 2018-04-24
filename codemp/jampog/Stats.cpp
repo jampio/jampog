@@ -1,5 +1,6 @@
-#include "server/server.h"
+#include <server/server.h>
 #include "Entity.h"
+#include "Player.h"
 
 void jampog::Stats::start() noexcept {
 	m_hits = 0;
@@ -67,4 +68,12 @@ void jampog::Stats::check_hits() noexcept {
 		add_hit();
 		m_pers_hits = m_cl->gentity->playerState->persistant[PERS_HITS];
 	}
+}
+
+bool jampog::Stats::ranked() const noexcept {
+	return m_ranked && jampog::Player::get(m_cl).discord.authorized();
+}
+
+void jampog::Stats::toggle_ranked() noexcept {
+	m_ranked = !m_ranked;
 }

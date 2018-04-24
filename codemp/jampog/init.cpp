@@ -10,11 +10,12 @@
 #include "duel_cull.h"
 #include "util.h"
 #include "damage.h"
+#include "Player.h"
 
 namespace console = jampog::console;
 using jampog::color_diff;
 
-qboolean cheats_okay(void *ptr);
+qboolean cheats_okay(sharedEntity_t *ptr);
 
 constexpr auto G_SOUNDTEMPENTITY_OFS = 0x0016E224;
 constexpr auto G_MUTESOUND_OFS = 0x0016E7A4;
@@ -93,15 +94,16 @@ static void print_stats_team(client_t *this_cl, int team) {
 	for (auto i = 0; i < sv_maxclients->integer; i++) {
 		auto cl = svs.clients + i;
 		jampog::Entity e(cl);
+		auto& p = jampog::Player::get(cl);
 		if (cl->state != CS_ACTIVE) continue;
 		if (e.client().team() == team) {
 			console::writeln(this_cl,
 				va("%s%d%s", "%-", color_diff(e.client().name()) + 36, "s^7 %-10d %-10d %-8d %-8d"),
 				e.client().name(),
-				cl->stats.damage(),
-				cl->stats.accuracy(),
-				cl->stats.kills(),
-				cl->stats.deaths()
+				p.stats.damage(),
+				p.stats.accuracy(),
+				p.stats.kills(),
+				p.stats.deaths()
 			);
 		}
 	}
@@ -167,7 +169,7 @@ static void MoveClientToIntermission(sharedEntity_t *ent) {
 static void PM_AddEvent(int newEvent) {
 	auto ps = (*BG_PM)->ps;
 	if (newEvent == EV_SABER_ATTACK) {
-		svs.clients[ps->clientNum].stats.add_shot();
+		jampog::Player::get(ps->clientNum).stats.add_shot();
 	}
 	_BG_AddPredictableEventToPlayerstate(newEvent, 0, ps);
 }

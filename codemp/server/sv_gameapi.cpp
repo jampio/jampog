@@ -31,6 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/timing.h"
 #include "NPCNav/navigator.h"
 #include "jampog/init.h"
+#include "jampog/Player.h"
 
 botlib_export_t	*botlib_export;
 
@@ -77,7 +78,7 @@ void GVM_ClientBegin( int clientNum ) {
 		VMSwap v( gvm );
 		ge->ClientBegin( clientNum, qtrue );
 	}
-	svs.clients[clientNum].stats.start();
+	jampog::Player::get(clientNum).stats.start();
 }
 
 qboolean GVM_ClientUserinfoChanged( int clientNum ) {

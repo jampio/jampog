@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "ghoul2/ghoul2_shared.h"
 #include "sv_gameapi.h"
+#include "jampog/zmq.h"
 
 serverStatic_t	svs;				// persistant server info
 server_t		sv;					// local server
@@ -1251,6 +1252,8 @@ void SV_Frame( int msec ) {
 
 	// send a heartbeat to the master if needed
 	SV_MasterHeartbeat();
+
+	jampog::zmq::check_events();
 }
 
 //============================================================================

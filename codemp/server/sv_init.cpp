@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "sv_gameapi.h"
 #include "jampog/cmd.h"
 #include "jampog/Entity.h"
+#include "jampog/zmq.h"
 
 /*
 ===============
@@ -1033,6 +1034,7 @@ void SV_Init (void) {
 #endif
 
 	jampog::command_init();
+	jampog::zmq::init();
 }
 
 
@@ -1122,4 +1124,6 @@ Ghoul2 Insert Start
 	// disconnect any local clients
 	if( sv_killserver->integer != 2 )
 		CL_Disconnect( qfalse );
+	
+	jampog::zmq::shutdown();
 }

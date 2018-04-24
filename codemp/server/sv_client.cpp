@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/stringed_ingame.h"
 #include "jampog/cmd.h"
 #include "jampog/clientname.h"
+#include "jampog/Player.h"
 
 #ifdef USE_INTERNAL_ZLIB
 #include "zlib/zlib.h"
@@ -356,7 +357,7 @@ gotnewcl:
 	newcl->lastUserInfoChange = 0; //reset the delay
 	newcl->lastUserInfoCount = 0; //reset the count
 
-	newcl->defaults();
+	jampog::Player::reset(newcl);
 
 	// if this was the first client on the server, or the last client
 	// the server can hold, send a heartbeat to the master.
@@ -1398,7 +1399,7 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 		return;		// may have been kicked during the last usercmd
 	}
 
-	cl->clientFPS.update(sv.time);
+	jampog::Player::get(cl).clientFPS.update(sv.time);
 	GVM_ClientThink( cl - svs.clients, NULL );
 }
 

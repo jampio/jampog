@@ -9,6 +9,7 @@
 #include "base.h"
 #include "structs/GClient.h"
 #include "util.h"
+#include "Player.h"
 
 namespace console = jampog::console;
 namespace str = jampog::str;
@@ -21,70 +22,67 @@ void SV_WriteBans(void);
 void SV_SendConfigstring(client_t *client, int index);
 static cvar_t *admin_password = nullptr;
 
-static client_t *client_from_ent(void *ptr) {
-	for (auto i = 0; i < sv_maxclients->integer; i++) {
-		if (svs.clients[i].gentity == ptr) {
-			return &svs.clients[i];
-		}
-	}
-	return nullptr;
-}
-
-qboolean cheats_okay(void *ptr) {
-	auto cl = client_from_ent(ptr);
-	if (Cvar_VariableIntegerValue("sv_cheats") || cl->admin.logged_in) {
+qboolean cheats_okay(sharedEntity_t *ent) {
+	auto& player = jampog::Player::get(ent);
+	if (Cvar_VariableIntegerValue("sv_cheats") || player.admin.logged_in) {
 		return qtrue;
 	} else {
-		console::writeln(cl, "You are not logged in.");
+		player.println_red("You are not logged in");
 		return qfalse;
 	}
 }
 
 static void drawduelers(client_t *cl) {
-	auto msg = cl->drawduelers ? "^1Disabled drawduelers^7" : "^2Enabled drawduelers^7";
-	cl->drawduelers = !cl->drawduelers;
-	console::writeln(cl, msg);
+	auto& player = jampog::Player::get(cl);
+	player.toggle_drawduelers();
+	if (player.drawduelers) player.println_green("Enabled drawduelers");
+	else player.println_red("Disabled drawduelers");
 }
 
 static void drawothers(client_t *cl) {
-	auto msg = cl->drawothers ? "^1Disabled drawothers^7" : "^2Enabled drawothers^7";
-	cl->drawothers = !cl->drawothers;
-	console::writeln(cl, msg);
+	auto& player = jampog::Player::get(cl);
+	player.toggle_drawothers();
+	if (player.drawothers) player.println_green("Enabled drawothers");
+	else player.println_red("Disabled drawothers");
 }
 
 static void login(client_t *cl) {
-	if (cl->admin.logged_in) {
-		console::writeln(cl, "You are logged in.");
+	auto& player = jampog::Player::get(cl);
+	if (player.admin.logged_in) {
+		player.println_green("You are logged in.");
 		return;
 	}
 	if (!strcmp(admin_password->string, "") || strcmp(admin_password->string, Cmd_Argv(1))) {
-		console::writeln(cl, "Invalid password.");
+		player.println_red("Invalid password.");
 	} else {
-		cl->admin.logged_in = true;
-		console::writeln(cl, "You are logged in.");
+		player.admin.logged_in = true;
+		player.println_green("You are logged in.");
 	}
 }
 
 static void noduelevent(client_t *cl) {
+	auto& player = jampog::Player::get(cl);
 	if (cl->gentity->playerState->duelInProgress) {
-		console::writeln(cl, "^1Cannot toggle during duel^7");
+		player.println_red("Cannot toggle during duel");
 		return;
 	}
-	auto msg = cl->noduelevent ? "^1Disabled noduelevent^7" : "^2Enabled noduelevent^7";
-	cl->noduelevent = !cl->noduelevent;
-	console::writeln(cl, msg);
+	player.toggle_noduelevent();
+	if (player.noduelevent) player.println_green("Enabled noduelevent");
+	else player.println_red("Disabled noduelevent");
 }
 
 static void noduelinprogress(client_t *cl) {
-	auto msg = cl->noduelInProgress ? "^1Disabled noduelinprogress^7" : "^2Enabled noduelinprogress^7";
-	cl->noduelInProgress = !cl->noduelInProgress;
-	console::writeln(cl, msg);
+	auto& player = jampog::Player::get(cl);
+	player.toggle_noduelInProgress();
+	if (player.noduelInProgress) player.println_green("Enabled noduelinprogress");
+	else player.println_red("Disabled noduelinprogress");
 }
 
 static void nonsolid(client_t *cl) {
-	auto msg = cl->nonsolid ? "^1Disabled nonsolid^7" : "^2Enabled nonsolid^7";
-	cl->nonsolid = !cl->nonsolid;
-	console::writeln(cl, msg);
+	auto& player = jampog::Player::get(cl);
+	player.toggle_nonsolid();
+	if (player.nonsolid) player.println_green("Enabled nonsolid");
+	else player.println_red("Disabled nonsolid");
 }
 
 static void pmovefixed(client_t *cl) {
@@ -98,19 +96,36 @@ static void pmovefixed(client_t *cl) {
 }
 
 static void where(client_t *cl) {
-	if (Cmd_Argc() == 2 && !cl->admin.logged_in) {
-		console::writeln(cl, "You are not logged in.");
+	auto& player = jampog::Player::get(cl);
+	if (Cmd_Argc() == 2 && !player.admin.logged_in) {
+		player.println_red("You are not logged in.");
 		return;
 	}
 	jampog::Entity ent{
 		Cmd_Argc() == 2 ? SV_GentityNum(atoi(Cmd_Argv(1))) : cl->gentity
 	};
 	if (!ent.inuse()) {
-		console::writeln(cl, "Invalid entity number");
+		player.println_red("Invalid entity number");
 		return;
 	}
 	auto orig = ent.origin();
 	console::writeln(cl, "%f %f %f", orig[0], orig[1], orig[2]);
+}
+
+static void ranked(client_t *cl) {
+	auto& player = jampog::Player::get(cl);
+	if (cl->gentity->playerState->duelInProgress) {
+		return player.println_red("Command unavailable during duels");
+	}
+	if (player.stats.ranked()) {
+		player.stats.toggle_ranked();
+		player.println_green("Opting out of ranked duels");
+	} else if (!player.discord.authorized()) {
+		player.println_red("You must authorize with discord");
+	} else {
+		player.stats.toggle_ranked();
+		player.println_green("Enabled ranked duels");
+	}
 }
 
 static void amaddbot(client_t *cl) {
@@ -141,11 +156,7 @@ static void amban(client_t *cl) {
 		console::writeln(cl, "Invalid entity index");
 		return;
 	}
-	auto kick_cl = client_from_ent((void*)ent.gent_ptr());
-	if (kick_cl == nullptr) {
-		console::writeln(cl, "null kick_cl");
-		return;
-	}
+	auto kick_cl = svs.clients + number;
 	netadr_t ip = cl->netchan.remoteAddress;
 	int mask = 32;
 	qboolean isexception = qfalse;
@@ -296,11 +307,7 @@ static void amkick(client_t *cl) {
 		console::writeln(cl, "Invalid entity index");
 		return;
 	}
-	auto kick_cl = client_from_ent((void*)ent.gent_ptr());
-	if (kick_cl == nullptr) {
-		console::writeln(cl, "null kick_cl");
-		return;
-	}
+	auto kick_cl = svs.clients + number;
 	SV_DropClient(kick_cl, SV_GetStringEdString("MP_SVGAME","WAS_KICKED"));
 	kick_cl->lastPacketTime = svs.time;
 }
@@ -383,9 +390,10 @@ static void amnoclip(client_t *cl) {
 #endif
 
 static void amtele(client_t *cl) {
+	auto& player = jampog::Player::get(cl);
 	if (Cmd_Argc() == 1) {
-		if (cl->telemark.is_marked()) {
-			jampog::Entity(cl).teleport(cl->telemark.get());
+		if (player.telemark.is_marked()) {
+			jampog::Entity(cl).teleport(player.telemark.get());
 		} else {
 			console::writeln(cl, "Telemark not set");
 		}
@@ -414,8 +422,9 @@ static void amtele(client_t *cl) {
 }
 
 static void amtelemark(client_t *cl) {
+	auto& player = jampog::Player::get(cl);
 	auto origin = jampog::Entity(cl).origin();
-	cl->telemark.set(origin[0], origin[1], origin[2]);
+	player.telemark.set(origin[0], origin[1], origin[2]);
 	console::writeln(cl, "telemark set");
 }
 
@@ -469,6 +478,7 @@ static Command cmds[] =
 	, {"noduelinprogress", noduelinprogress, "(experimental) won't network duelInProgress (hides duel shell)"}
 	, {"nonsolid", nonsolid, "(experimental) smooths collision between dueling & nondueling players"}
 	, {"pmovefixed", pmovefixed, "(experimental) use pmove_fixed 1 on server and on your client"}
+	, {"ranked", ranked, "toggle ranked duels, must authorize with discord before"}
 	, {"where", where, "display origin"}
 	};
 
@@ -535,38 +545,42 @@ static int adjust_rate(int rate) {
 }
 
 static void info(client_t *cl) {
+	auto& player = jampog::Player::get(cl);
 	console::writeln
 		( cl, INFO
 		, sv_pure->integer
-		, sv_fps->integer, 1000 / cl->snapshotMsec, cl->clientFPS.fps()
+		, sv_fps->integer, 1000 / cl->snapshotMsec, player.clientFPS.fps()
 		, sv_maxRate->integer, adjust_rate(cl->rate)
 		);
 	if (jampog::Entity(cl).client().persistant()->pmoveFixed) {
 		console::writeln(cl, "pmovefixed:       ^3%-8s^7", "ON (125fps)");
 	}
-	if (cl->drawduelers) {
+	if (player.drawduelers) {
 		console::writeln(cl, "drawduelers:      ^3%-8s^7", "ON");
 	}
-	if (cl->drawothers) {
+	if (player.drawothers) {
 		console::writeln(cl, "drawothers:       ^3%-8s^7", "ON");
 	}
-	if (cl->nonsolid) {
+	if (player.nonsolid) {
 		console::writeln(cl, "nonsolid:         ^3%-8s^7", "ON");
 	}
-	if (cl->noduelInProgress) {
+	if (player.noduelInProgress) {
 		console::writeln(cl, "noduelinprogress: ^3%-8s^7", "ON");
 	}
-	if (cl->noduelevent) {
+	if (player.noduelevent) {
 		console::writeln(cl, "noduelevent:      ^3%-8s^7", "ON");
 	}
-	if (cl->admin.logged_in) {
+	if (player.admin.logged_in) {
 		console::writeln(cl, "cheats:           ^3%-8s^7", "ON");
+	}
+	if (player.stats.ranked()) {
+		console::writeln(cl, "ranked:           ^3%-8s^7", "ON");
 	}
 	console::writeln(cl, "\ncommands:");
 	for (auto &cmd: cmds) {
 		console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
 	}
-	if (cl->admin.logged_in) {
+	if (player.admin.logged_in) {
 		// console::writeln(cl, "^5%-24s^7%s", "amnoclip", "toggle noclip");
 		for (auto &cmd: admin_cmds) {
 			console::writeln(cl, "^5%-24s^7%s", cmd.name, cmd.desc);
@@ -577,22 +591,23 @@ static void info(client_t *cl) {
 static void players(client_t *cl) {
 	console::writeln(cl, "%-2s %-36s %-8s %-8s %-8s %-12s %-8s", "#", "name", "rate", "snaps", "fps", "pmove_fixed", "jump");
 	for (auto i = 0; i < sv_maxclients->integer; i++) {
-		auto& it = svs.clients[i];
-		if (it.state != CS_ACTIVE) continue;
-		const int offset = color_diff(it.name) + 36;
+		auto it = svs.clients + i;
+		if (it->state != CS_ACTIVE) continue;
+		const int offset = color_diff(it->name) + 36;
 		console::writeln(cl, va("%s%d%s", "%-2d %-", offset , "s^7 %-8d %-8d %-8d %-12d %-8d")
-			, SV_NumForGentity(it.gentity)
-			, it.name
-			, adjust_rate(it.rate)
-			, 1000 / it.snapshotMsec
-			, it.clientFPS.fps()
-			, jampog::Entity(&it).client().persistant()->pmoveFixed
-			, jampog::Entity(&it).ps().fd.forcePowerLevel[FP_LEVITATION]
+			, SV_NumForGentity(it->gentity)
+			, it->name
+			, adjust_rate(it->rate)
+			, 1000 / it->snapshotMsec
+			, jampog::Player::get(it).clientFPS.fps()
+			, jampog::Entity(it).client().persistant()->pmoveFixed
+			, jampog::Entity(it).ps().fd.forcePowerLevel[FP_LEVITATION]
 		);
 	}
 }
 
 bool jampog::command(client_t *cl) {
+	auto& player = jampog::Player::get(cl);
 	const char * const arg0 = unalias(Cmd_Argv(0));
 	if (!strcmp(arg0, "gc")) {
 		return true;
@@ -605,7 +620,7 @@ bool jampog::command(client_t *cl) {
 	}
 	for (auto &cmd: admin_cmds) {
 		if (!strcmp(arg0, cmd.name)) {
-			if (cl->admin.logged_in) {
+			if (player.admin.logged_in) {
 				cmd.func(cl);
 			} else {
 				console::writeln(cl, "You are not logged in.");

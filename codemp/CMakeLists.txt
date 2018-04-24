@@ -645,6 +645,7 @@ if(BuildMPDed)
 	set(MPDedFiles ${MPDedFiles} ${MPDedNullFiles})
 
 	set(MPJampogFiles
+		"${MPDir}/jampog/Admin.h"
 		"${MPDir}/jampog/base.h"
 		"${MPDir}/jampog/base.cpp"
 		"${MPDir}/jampog/clean_name.cpp"
@@ -659,6 +660,8 @@ if(BuildMPDed)
 		"${MPDir}/jampog/damage.cpp"
 		"${MPDir}/jampog/detour.cpp"
 		"${MPDir}/jampog/detour.h"
+		"${MPDir}/jampog/Discord.h"
+		"${MPDir}/jampog/Discord.cpp"
 		"${MPDir}/jampog/duel_cull.cpp"
 		"${MPDir}/jampog/duel_cull.h"
 		"${MPDir}/jampog/duel.cpp"
@@ -672,10 +675,14 @@ if(BuildMPDed)
 		"${MPDir}/jampog/init.cpp"
 		"${MPDir}/jampog/init.h"
 		"${MPDir}/jampog/offsets.h"
+		"${MPDir}/jampog/Player.h"
+		"${MPDir}/jampog/Player.cpp"
 		"${MPDir}/jampog/Stats.h"
 		"${MPDir}/jampog/Stats.cpp"
 		"${MPDir}/jampog/Telemark.h"
 		"${MPDir}/jampog/util.h"
+		"${MPDir}/jampog/zmq.h"
+		"${MPDir}/jampog/zmq.cpp"
 	)
 	source_group("jampog" FILES ${MPJampogFiles})
 	set(MPDedFiles ${MPDedFiles} ${MPJampogFiles})
@@ -731,7 +738,7 @@ if(BuildMPDed)
 
 	set_target_properties(${MPDed} PROPERTIES INCLUDE_DIRECTORIES "${MPDedIncludeDirectories}")
 	set_target_properties(${MPDed} PROPERTIES PROJECT_LABEL "MP Dedicated Server")
-	target_link_libraries(${MPDed} ${MPDedLibraries})
+	target_link_libraries(${MPDed} ${MPDedLibraries} -lzmq -lzmqpp)
 endif(BuildMPDed)
 
 	set(GameLibsBuilt)

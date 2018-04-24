@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "server.h"
 #include "qcommon/cm_public.h"
 #include "jampog/duel_cull.h"
+#include "jampog/Player.h"
 
 /*
 =============================================================================
@@ -429,12 +430,13 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 
 		if (ent->s.eType == ET_EVENTS + EV_SABER_BLOCK
 		    && ent->s.otherEntityNum2 == frame->ps.clientNum) {
-			svs.clients[frame->ps.clientNum].stats.add_hit();
+			jampog::Player::get(frame->ps.clientNum).stats.add_hit();
 		}
 
+		auto& player = jampog::Player::get(client);
 		bool culled = DuelCull(SV_GentityNum(frame->ps.clientNum), ent);
-		if ((frame->ps.duelInProgress == qfalse && !client->drawduelers && culled)
-		    || (frame->ps.duelInProgress == qtrue && !client->drawothers && culled)) {
+		if ((frame->ps.duelInProgress == qfalse && !player.drawduelers && culled)
+		    || (frame->ps.duelInProgress == qtrue && !player.drawothers && culled)) {
 			if (Cvar_VariableIntegerValue("sv_debugSnapshotCull")) {
 				SV_SendServerCommand(svs.clients + frame->ps.clientNum, va("print \"SnapshotCull ent: %d\"\n", SV_NumForGentity(ent)));
 			}
@@ -639,6 +641,8 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		((int *)frame->areabits)[i] = ((int *)frame->areabits)[i] ^ -1;
 	}
 
+	auto& player = jampog::Player::get(client);
+
 	// copy the entity states out
 	frame->num_entities = 0;
 	frame->first_entity = svs.nextSnapshotEntities;
@@ -646,10 +650,10 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		ent = SV_GentityNum(entityNumbers.snapshotEntities[i]);
 		state = &svs.snapshotEntities[svs.nextSnapshotEntities % svs.numSnapshotEntities];
 		*state = ent->s;
-		if (client->nonsolid && DuelCull(client->gentity, ent)) {
+		if (player.nonsolid && DuelCull(client->gentity, ent)) {
 			state->solid = 0;
 		}
-		if (client->noduelInProgress
+		if (player.noduelInProgress
 		    && client->gentity->playerState->duelInProgress
 		    && (SV_NumForGentity(client->gentity) == SV_NumForGentity(ent)
 		        || client->gentity->playerState->duelIndex == SV_NumForGentity(ent))) {
@@ -670,11 +674,11 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		frame->num_entities++;
 	}
 
-	if (client->noduelInProgress) {
+	if (player.noduelInProgress) {
 		frame->ps.duelInProgress = qfalse;
 	}
 
-	if (client->noduelevent
+	if (player.noduelevent
 	    && (frame->ps.externalEvent & ~EV_EVENT_BITS) == EV_PRIVATE_DUEL) {
 		// not sure if this is exactly correct
 		frame->ps.externalEvent &= ~EV_PRIVATE_DUEL;

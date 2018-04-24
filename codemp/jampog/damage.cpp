@@ -1,6 +1,7 @@
 #include <server/server.h>
 #include "damage.h"
 #include "Entity.h"
+#include "Player.h"
 
 constexpr auto CHECKARMOR_OFS = 0x00135244;
 constexpr auto PLAYERDIE_OFS = 0x00133B44;
@@ -16,7 +17,7 @@ static int CheckArmorProxy(sharedEntity_t *target, int damage, int dflags) {
 	jampog::Entity attacker(esi);
 	auto amt = CheckArmor(target, damage, dflags);
 	if (attacker.is_player() && attacker.gent_ptr() != target) {
-		svs.clients[attacker.number()].stats.add_damage(amt);
+		jampog::Player::get(attacker).stats.add_damage(amt);
 	}
 	return amt;
 }
@@ -27,7 +28,7 @@ static void PlayerDieProxy(sharedEntity_t *self, sharedEntity_t *inflictor, shar
 	    && jampog::Entity(attacker).is_player()) {
 		auto health = self->playerState->stats[STAT_HEALTH];
 		auto dmg = damage + health;
-		svs.clients[SV_NumForGentity(attacker)].stats.add_damage(dmg);
+		jampog::Player::get(attacker).stats.add_damage(dmg);
 	}
 	player_die(self, inflictor, attacker, damage, mod);
 }
@@ -37,7 +38,7 @@ static void G_LogWeaponDamage(int client, int mod, int amount) {
 	(*G_WeaponLogDamage)[client][mod] += amount;
 	(*G_WeaponLogClientTouch)[client] = qtrue;
 
-	svs.clients[client].stats.add_damage(amount);
+	jampog::Player::get(client).stats.add_damage(amount);
 }
 
 void jampog::patch_damage_hooks(uintptr_t base) {

@@ -2,6 +2,7 @@
 #include <server/server.h>
 #include "offsets.h"
 #include "Entity.h"
+#include "Player.h"
 
 constexpr auto CMD_ENGAGEDUEL_F_OFFSET = 0x0012F834;
 constexpr auto G_ENTITIES_OFFSET = 0x006CE620;
@@ -75,7 +76,7 @@ static void check_begin_duel(sharedEntity_t *ent) {
 	G_AddEvent(ent, EV_PRIVATE_DUEL, 2);
 #endif
 	ent->playerState->duelTime = 0;
-	svs.clients[SV_NumForGentity(ent)].stats.start();
+	jampog::Player::get(ent).stats.start();
 	// TODO: add begin sound
 	// trap_SendServerCommand(client_num(g_base, ent), va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "BEGIN_DUEL")));
 	// G_Sound(ent, CHAN_ANNOUNCER, G_SoundIndex("sound/chars/protocol/misc/40MOM038"));
@@ -119,13 +120,17 @@ static void begin_duel_event(sharedEntity_t *ent) {
 }
 
 static void print_winner_msg(sharedEntity_t *ent, sharedEntity_t *duelAgainst) {
-	trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> ^5HP:^7 (^1%d^7/^2%d^7), ^5accuracy: ^3%d^7\n\"",
+	bool ranked = jampog::Player::get(ent).stats.ranked()
+	              && jampog::Player::get(duelAgainst).stats.ranked();
+	const char *kind = ranked ? " ^3[ranked]^7" : "";
+	trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7! ==> ^5HP:^7 (^1%d^7/^2%d^7), ^5accuracy: ^3%d^7%s\n\"",
 		jampog::Entity(ent).client().name(),
 		G_GetStringEdString("MP_SVGAME", "PLDUELWINNER"),
 		jampog::Entity(duelAgainst).client().name(),
 		ent->playerState->stats[STAT_HEALTH],
 		ent->playerState->stats[STAT_ARMOR],
-		svs.clients[SV_NumForGentity(ent)].stats.accuracy()
+		jampog::Player::get(ent).stats.accuracy(),
+		kind
 	));
 }
 
@@ -146,7 +151,7 @@ static void reset_health(sharedEntity_t *ent) {
 static void DuelActive(sharedEntity_t *ent) {
 	if (ent->s.eType != ET_PLAYER) return;
 
-	svs.clients[SV_NumForGentity(ent)].stats.check_hits();
+	jampog::Player::get(ent).stats.check_hits();
 
 	if (!ent->playerState->duelInProgress) return;
 
@@ -235,15 +240,33 @@ static void EngageDuel(sharedEntity_t *ent) {
 	ent->playerState->duelIndex = SV_NumForGentity(challenged);
 	ent->playerState->duelTime = sv.time + 5000;
 
+	bool ranked = jampog::Player::get(ent).stats.ranked()
+	              && jampog::Player::get(challenged).stats.ranked();
+
+	const char *kind = ranked ? " ^3[ranked]^7" : "";
+
 	if (challenged->playerState->duelIndex == SV_NumForGentity(ent)
 	    && challenged->playerState->duelTime >= sv.time) {
-		trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7!\n\"", jampog::Entity(challenged).client().name(), G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), jampog::Entity(ent).client().name()));
+		trap_SendServerCommand(-1, va("print \"%s^7 %s %s^7!%s\n\"",
+			jampog::Entity(challenged).client().name(),
+			G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"),
+			jampog::Entity(ent).client().name(),
+			kind
+		));
 		begin_duel_event(ent);
 		begin_duel_event(challenged);
 	} else {
 		// Print the message that a player has been challenged in private, only announce the actual duel initiation in private
-		trap_SendServerCommand(SV_NumForGentity(challenged), va("cp \"%s^7 %s\n\"", jampog::Entity(ent).client().name(), G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE")));
-		trap_SendServerCommand(SV_NumForGentity(ent), va("cp \"%s %s^7\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), jampog::Entity(challenged).client().name()));
+		trap_SendServerCommand(SV_NumForGentity(challenged), va("cp \"%s^7 %s%s\n\"",
+			jampog::Entity(ent).client().name(),
+			G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE"),
+			kind
+		));
+		trap_SendServerCommand(SV_NumForGentity(ent), va("cp \"%s %s^7%s\n\"",
+			G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"),
+			jampog::Entity(challenged).client().name(),
+			kind
+		));
 	}
 }
 

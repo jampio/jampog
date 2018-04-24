@@ -15,6 +15,7 @@ private:
 	int m_damage;
 	int m_kills;
 	int m_deaths;
+	bool m_ranked;
 public:
 	constexpr Stats(client_t *cl = nullptr) noexcept
 	: m_cl(cl)
@@ -25,6 +26,7 @@ public:
 	, m_damage(0)
 	, m_kills(0)
 	, m_deaths(0)
+	, m_ranked(false) 
 	{}
 	void start() noexcept;
 	int hits() const noexcept;
@@ -37,6 +39,8 @@ public:
 	void add_shot() noexcept;
 	void add_damage(int amount) noexcept;
 	void check_hits() noexcept;
+	void toggle_ranked() noexcept;
+	bool ranked() const noexcept;
 };
 
 }

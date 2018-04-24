@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jampog/ClientFPS.h"
 #include "jampog/Telemark.h"
 #include "jampog/Stats.h"
+#include "jampog/Discord.h"
 
 //=============================================================================
 
@@ -194,28 +195,6 @@ typedef struct client_s {
 	qboolean		csUpdated[MAX_CONFIGSTRINGS];
 
 	demoInfo_t		demo;
-
-	jampog::Admin		admin;
-	jampog::ClientFPS	clientFPS;
-	jampog::Telemark	telemark;
-	jampog::Stats		stats;
-	bool				nonsolid;
-	bool				noduelInProgress;
-	bool				noduelevent;
-	bool				drawduelers;
-	bool				drawothers;
-
-	void defaults() {
-		admin = jampog::Admin{};
-		clientFPS = jampog::ClientFPS{};
-		telemark = jampog::Telemark{};
-		stats = jampog::Stats(this);
-		nonsolid = true;
-		noduelInProgress = true;
-		noduelevent = false;
-		drawduelers = true;
-		drawothers = false;
-	}
 } client_t;
 
 //=============================================================================

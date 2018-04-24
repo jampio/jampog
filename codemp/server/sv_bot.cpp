@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "botlib/botlib.h"
 #include "qcommon/cm_public.h"
 #include "server/sv_gameapi.h"
+#include "jampog/Player.h"
 
 typedef struct bot_debugpoly_s
 {
@@ -208,7 +209,7 @@ int SV_BotAllocateClient(void) {
 	cl->netchan.remoteAddress.type = NA_BOT;
 	cl->rate = 16384;
 
-	cl->defaults();
+	jampog::Player::reset(cl);
 
 	// cannot start recording auto demos here since bot's name is not set yet
 	return i;
