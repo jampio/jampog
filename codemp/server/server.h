@@ -211,7 +211,7 @@ typedef struct client_s {
 		telemark = jampog::Telemark{};
 		stats = jampog::Stats(this);
 		nonsolid = true;
-		noduelInProgress = true;
+		noduelInProgress = false;
 		noduelevent = false;
 		drawduelers = true;
 		drawothers = false;
