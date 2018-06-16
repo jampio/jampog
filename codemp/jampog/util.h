@@ -29,6 +29,7 @@ namespace jampog::str {
 	}
 	bool any_chars(const char *chars, const char *subject);
 	bool empty(const char *str);
+	bool equals(const char *a, const char *b);
 }
 
 namespace jampog {

@@ -12,3 +12,7 @@ bool jampog::str::empty(const char *str) {
 	if (!str || !str[0]) return true;
 	return false;
 }
+
+bool jampog::str::equals(const char *a, const char *b) {
+	return strcmp(a, b) == 0;
+}

@@ -1262,15 +1262,15 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 	// Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
 	const char *arg = Cmd_Argv(1);
 	if (jampog::str::empty(Cmd_Argv(1))) {
-		SV_SendServerCommand(cl, "print \"Invalid userinfo string: empty.\"\n");
+		SV_SendServerCommand(cl, "print \"Invalid userinfo string: empty.\n\"\n");
 		return;
 	}
 	if (jampog::str::any_chars("\n\r;", Cmd_Argv(1))) {
-		SV_SendServerCommand(cl, "print \"Invalid userinfo string: control characters found.\"\n");
+		SV_SendServerCommand(cl, "print \"Invalid userinfo string: control characters found.\n\"\n");
 		return;
 	}
 	if (strlen(Cmd_Argv(1)) >= sizeof(cl->userinfo)) {
-		SV_SendServerCommand(cl, "print \"Invalid userinfo string: length exceeded.\"\n");
+		SV_SendServerCommand(cl, "print \"Invalid userinfo string: length exceeded.\n\"\n");
 		return;
 	}
 
@@ -1313,9 +1313,20 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 	Cmd_TokenizeString( s );
 
 	for (auto i = 0; i < Cmd_Argc(); i++) {
-		if (jampog::str::any_chars("\n\r;", Cmd_Argv(i))) {
-			SV_SendServerCommand(cl, "print \"Client command ignored: control characters found.\"\n");
-			return;
+		const char *cmd = Cmd_Argv(0);
+		if (jampog::str::equals(cmd, "say") ||
+		    jampog::str::equals(cmd, "say_team") ||
+			jampog::str::equals(cmd, "tell")) {
+			// allow semicolons in chat
+			if (jampog::str::any_chars("\n\r", Cmd_Argv(i))) {
+				SV_SendServerCommand(cl, "print \"Client command ignored: control characters found.\n\"\n");
+				return;
+			}
+		} else {
+			if (jampog::str::any_chars("\n\r;", Cmd_Argv(i))) {
+				SV_SendServerCommand(cl, "print \"Client command ignored: control characters found.\n\"\n");
+				return;
+			}
 		}
 	}
 
