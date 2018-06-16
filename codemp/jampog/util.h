@@ -27,6 +27,8 @@ namespace jampog::str {
 	static void cpy(char (&buffer)[N], const char *src) {
 		Q_strncpyz(buffer, src, N);
 	}
+	bool any_chars(const char *chars, const char *subject);
+	bool empty(const char *str);
 }
 
 namespace jampog {

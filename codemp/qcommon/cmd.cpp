@@ -486,6 +486,7 @@ char *Cmd_Cmd(void)
 	}
 }*/
 
+#if 0
 void Cmd_Args_Sanitize( size_t length, const char *strip, const char *repl )
 {
 	for ( int i = 1; i < cmd_argc; i++ )
@@ -499,6 +500,7 @@ void Cmd_Args_Sanitize( size_t length, const char *strip, const char *repl )
 			Q_strstrip( c, strip, repl );
 	}
 }
+#endif
 
 /*
 ============

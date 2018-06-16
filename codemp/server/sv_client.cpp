@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/stringed_ingame.h"
 #include "jampog/cmd.h"
 #include "jampog/clientname.h"
+#include "jampog/util.h"
 
 #ifdef USE_INTERNAL_ZLIB
 #include "zlib/zlib.h"
@@ -165,7 +166,19 @@ void SV_DirectConnect( netadr_t from ) {
 		return;
 	}
 
-	Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
+	// Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
+	if (jampog::str::empty(Cmd_Argv(1))) {
+		NET_OutOfBandPrint(NS_SERVER, from, "print\nInvalid userinfo string: empty.\n");
+		return;
+	}
+	if (jampog::str::any_chars("\n\r;", Cmd_Argv(1))) {
+		NET_OutOfBandPrint(NS_SERVER, from, "print\nInvalid userinfo string: control characters found.\n");
+		return;
+	}
+	if (strlen(Cmd_Argv(1)) >= sizeof(userinfo)) {
+		NET_OutOfBandPrint(NS_SERVER, from, "print\nInvalid userinfo string: length exceeded.\n");
+		return;
+	}
 	Q_strncpyz( userinfo, Cmd_Argv(1), sizeof(userinfo) );
 
 	version = atoi( Info_ValueForKey( userinfo, "protocol" ) );
@@ -1246,9 +1259,20 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 		cl->lastUserInfoChange = svs.time + INFO_CHANGE_MIN_INTERVAL;
 	}
 
-	Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
+	// Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
 	const char *arg = Cmd_Argv(1);
-	if (!strcmp(arg, "")) return;
+	if (jampog::str::empty(Cmd_Argv(1))) {
+		SV_SendServerCommand(cl, "print \"Invalid userinfo string: empty.\"\n");
+		return;
+	}
+	if (jampog::str::any_chars("\n\r;", Cmd_Argv(1))) {
+		SV_SendServerCommand(cl, "print \"Invalid userinfo string: control characters found.\"\n");
+		return;
+	}
+	if (strlen(Cmd_Argv(1)) >= sizeof(cl->userinfo)) {
+		SV_SendServerCommand(cl, "print \"Invalid userinfo string: length exceeded.\"\n");
+		return;
+	}
 
 	Q_strncpyz(cl->userinfo, arg, sizeof(cl->userinfo));
 
@@ -1288,6 +1312,13 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 
 	Cmd_TokenizeString( s );
 
+	for (auto i = 0; i < Cmd_Argc(); i++) {
+		if (jampog::str::any_chars("\n\r;", Cmd_Argv(i))) {
+			SV_SendServerCommand(cl, "print \"Client command ignored: control characters found.\"\n");
+			return;
+		}
+	}
+
 	// see if it is a server level command
 	for (u=ucmds ; u->name ; u++) {
 		if (!strcmp (Cmd_Argv(0), u->name) ) {
@@ -1309,7 +1340,7 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 					Cmd_Args_Sanitize( MAX_CVAR_VALUE_STRING, ";", " " );
 				}
 			}*/
-			Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
+			// Cmd_Args_Sanitize(MAX_CVAR_VALUE_STRING, "\n\r;", " ");
 			if (!jampog::command(cl)) {
 				GVM_ClientCommand( cl - svs.clients );
 			}
